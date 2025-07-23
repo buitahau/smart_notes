@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Notes</title>
+    <meta name="description" content="Smart Notes - Your intelligent note-taking companion" />
+    <link rel="icon" href="/favicon.ico" />
+    <style>
+      /* Prevent FOUC (Flash of Unstyled Content) */
+      body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+      }
+      body.ready {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/entry.tsx"></script>
+    <script>
+      // Add 'ready' class when the DOM is fully loaded
+      document.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('ready');
+      });
+    </script>
+  </body>
+</html>
