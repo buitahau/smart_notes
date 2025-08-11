@@ -1,7 +1,45 @@
 import { defineConfig } from 'wxt';
+import { resolve } from 'path';
 
 export default defineConfig({
-  modules: ['@wxt-dev/module-react'],
+  vite: () => ({
+    resolve: {
+      alias: [
+        {
+          find: '@components',
+          replacement: resolve(__dirname, './components'),
+        },
+        {
+          find: '@features',
+          replacement: resolve(__dirname, './features'),
+        },
+        {
+          find: '@pages',
+          replacement: resolve(__dirname, './pages'),
+        },
+        {
+          find: '@services',
+          replacement: resolve(__dirname, './services'),
+        },
+        {
+          find: '@utils',
+          replacement: resolve(__dirname, './utils'),
+        },
+        {
+          find: '@hooks',
+          replacement: resolve(__dirname, './hooks'),
+        },
+        {
+          find: '@assets',
+          replacement: resolve(__dirname, './assets'),
+        },
+        {
+          find: 'types',
+          replacement: resolve(__dirname, './types'),
+        },
+      ],
+    },
+  }),
   manifest: {
     name: 'Smart Notes',
     description: 'Smart Notes Chrome Extension',

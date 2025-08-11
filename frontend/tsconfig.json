@@ -17,9 +17,17 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@components/*": ["./components/*"],
+      "@features/*": ["./features/*"],
+      "@pages/*": ["./pages/*"],
+      "@services": ["./services"],
+      "@utils/*": ["./utils/*"],
+      "@hooks/*": ["./hooks/*"],
+      "@assets/*": ["./assets/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["wxt.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
