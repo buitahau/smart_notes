@@ -21,10 +21,11 @@
       "@components/*": ["./components/*"],
       "@features/*": ["./features/*"],
       "@pages/*": ["./pages/*"],
-      "@services": ["./services"],
+      "@services/*": ["./services/*"],
       "@utils/*": ["./utils/*"],
       "@hooks/*": ["./hooks/*"],
-      "@assets/*": ["./assets/*"]
+      "@assets/*": ["./assets/*"],
+      "@types": ["./types"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

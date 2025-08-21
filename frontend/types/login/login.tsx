@@ -14,4 +14,6 @@ export interface LoginFormData {
     onSubmit?: (data: LoginFormData) => Promise<void>;
     onForgotPassword?: () => void;
     onSignUp?: () => void;
+    onGoogleLogin?: () => void;
+    onFacebookLogin?: () => void;
   }

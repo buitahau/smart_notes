@@ -17,6 +17,10 @@ body {
   min-width: 400px !important;
 }
 
+#root {
+  width: 100%;
+}
+
 .app-container {
   background-color: #f9fafb;
   min-height: 100vh;

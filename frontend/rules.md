@@ -7,9 +7,10 @@ This document defines all rules the AI model must follow when generating code, U
 ## ⛔ STOP CONDITIONS
 
 Do not finalize output until:
-- All logic is verified 
-<!-- - All logic is verified and tested -->
-<!-- - All failing test cases are fixed -->
+
+- All logic is verified
+  <!-- - All logic is verified and tested -->
+  <!-- - All failing test cases are fixed -->
 - All requirements in this file are satisfied
 - Any unclear intent is clarified with the user or resolved via external search (e.g., Google)
 
@@ -20,13 +21,13 @@ Do not finalize output until:
 ### COMPONENT USAGE
 
 - ✅ Use existing shared components when available:  
-  `Form`, `FormGroup`, `Input`, `Button`, etc.  
+  `Form`, `FormGroup`, `Input`, `Button`, etc.
 - ❌ Do not recreate components if reusable ones exist
 
 ### LAYOUT CONSTRAINTS
 
-- Width: `max-width: 360px` (mobile-first)  
-- Height: allow content to scale, `max-height: 720px`  
+- Width: `max-width: 360px` (mobile-first)
+- Height: allow content to scale, `max-height: 720px`
 - Ensure responsive, accessible design
 
 ---
@@ -39,6 +40,7 @@ Do not finalize output until:
   - `services/` → external calls
   - `utils/` → shared utilities
 - Code must be:
+
   - Maintainable (modular)
   - Scalable (extensible)
   - Easy to read (clear naming)
@@ -52,11 +54,13 @@ Do not finalize output until:
 ## 📦 CODE GENERATION RULES
 
 - ✅ Generated code must:
+
   - Use best practices of the target language and framework
   - Be self-contained and testable
   - Include test files for new logic
 
 - ❌ Do not:
+
   - Embed business logic inside components
   - Use hardcoded API URLs or inline Supabase calls
 
@@ -70,6 +74,7 @@ Do not finalize output until:
 ## 🔍 VALIDATION RULES
 
 Before finalizing output:
+
 1. Ensure logic correctness (unit test or assert)
 2. Run and fix all test cases
 3. Ask user if unclear
@@ -120,6 +125,7 @@ Before finalizing output:
   - Use `React Hook Form` unless custom handler exists
   - All fields must have visible labels and validation
 - ✅ Icons:
+
   - Import from `lucide-react`
   - All icon components must use `Icon` suffix  
     e.g., `HomeIcon`, `SearchIcon`

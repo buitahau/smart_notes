@@ -1,4 +1,4 @@
-import { LoginFormData, LoginErrors } from 'types/login';
+import { LoginFormData, LoginErrors } from '@types';
 
 export const validateLoginForm = (formData: LoginFormData): LoginErrors => {
   const errors: LoginErrors = {};

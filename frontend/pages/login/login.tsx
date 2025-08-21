@@ -1,13 +1,16 @@
 import { Lock, Mail } from "lucide-react";
 import { useLoginForm } from "@features/login";
 import { LoginHeader, LoginFooter, InputField, ErrorMessage } from "@features/login";
+import { SocialButton } from "@features/signup";
 import "./login.css";
-import { LoginProps } from "types";
+import { LoginProps } from "@types/login";
 
 export function Login({
   onSubmit,
   onForgotPassword,
   onSignUp,
+  onGoogleLogin,
+  onFacebookLogin,
 }: LoginProps = {}) {
   const { formData, errors, isLoading, updateField, handleSubmit } =
     useLoginForm();
@@ -37,6 +40,26 @@ export function Login({
       <LoginHeader />
 
       {errors.general && <ErrorMessage message={errors.general} />}
+
+      {/* Social Login Buttons */}
+      <div className="login-social-section">
+        <SocialButton
+          provider="google"
+          onClick={onGoogleLogin}
+          disabled={isLoading}
+        />
+        <SocialButton
+          provider="facebook"
+          onClick={onFacebookLogin}
+          disabled={isLoading}
+        />
+      </div>
+
+      <div className="login-divider">
+        <div className="login-divider-line"></div>
+        <span className="login-divider-text">Or sign in with email</span>
+        <div className="login-divider-line"></div>
+      </div>
 
       <form onSubmit={handleFormSubmit} className="login-form">
         <InputField

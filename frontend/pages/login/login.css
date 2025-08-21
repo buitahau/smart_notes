@@ -248,3 +248,31 @@
     cursor: not-allowed;
     opacity: 0.7;
 }
+
+/* Social Login Section */
+.login-social-section {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Divider */
+.login-divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+}
+
+.login-divider-line {
+    flex: 1;
+    height: 1px;
+    background-color: #e5e7eb;
+}
+
+.login-divider-text {
+    padding: 0 1rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+    background-color: white;
+}

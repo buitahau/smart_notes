@@ -1,1 +1,2 @@
-// This file contains all services used in the app
+export * from './auth-service';
+export * from './supabase-client-service';

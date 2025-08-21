@@ -1,3 +1,2 @@
-import { LoginFormData, LoginErrors, LoginProps } from "./login";
-
-export type { LoginFormData, LoginErrors, LoginProps };
+export * from "./login";
+export * from "./signup";

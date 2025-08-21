@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LoginFormData, LoginErrors } from 'types';
+import { LoginFormData, LoginErrors } from '@types/login';
 import { validateLoginForm } from '@features/login/utils';
 
 export const useLoginForm = () => {

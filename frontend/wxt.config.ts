@@ -34,7 +34,7 @@ export default defineConfig({
           replacement: resolve(__dirname, './assets'),
         },
         {
-          find: 'types',
+          find: '@types',
           replacement: resolve(__dirname, './types'),
         },
       ],
