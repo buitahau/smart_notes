@@ -5,18 +5,13 @@ import { Signup } from '@pages/signup';
 import { Home } from '@pages/home';
 import { LoginFormData, SignupFormData } from '@types';
 import { signUp } from '@services';
+import { useMiniRouter } from '@hooks/use-mini-router';
 
 type AppView = 'login' | 'signup' | 'home';
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>('login');
-
-  const handleLoginSuccess = async (data: LoginFormData) => {
-    // In a real app, you would typically validate credentials here
-    console.log('Login successful', data);
-    setCurrentView('home');
-    return Promise.resolve();
-  };
+  const {route, params, navigate} = useMiniRouter('login');
 
   const handleSignupSuccess = async (data: SignupFormData) => {
     try {
@@ -72,6 +67,22 @@ function App() {
     setCurrentView('login');
   };
 
+  const renderView = () => {
+    switch (route) {
+      case 'login': {
+        return <Login
+        onSuccess={() => navigate('home')}
+        onSignUp={navigateToSignup}
+        onGoogleLogin={handleGoogleLogin}
+        onFacebookLogin={handleFacebookLogin}
+        />;
+      }
+      case 'home' : {
+        return <Home />;
+      }
+    }
+  }
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'signup':
@@ -89,7 +100,7 @@ function App() {
       default:
         return (
           <Login
-            onSubmit={handleLoginSuccess}
+            onSuccess={() => navigate('home')}
             onSignUp={navigateToSignup}
             onGoogleLogin={handleGoogleLogin}
             onFacebookLogin={handleFacebookLogin}
@@ -101,7 +112,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="app-content">
-        {renderCurrentView()}
+        {renderView()}
       </div>
     </div>
   );

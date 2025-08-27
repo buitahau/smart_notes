@@ -4,9 +4,10 @@ import { LoginHeader, LoginFooter, InputField, ErrorMessage } from "@features/lo
 import { SocialButton } from "@features/signup";
 import "./login.css";
 import { LoginProps } from "@types/login";
+import { LoginFormData } from "@types";
 
 export function Login({
-  onSubmit,
+  onSuccess,
   onForgotPassword,
   onSignUp,
   onGoogleLogin,
@@ -19,6 +20,13 @@ export function Login({
     e.preventDefault();
     await handleSubmit(onSubmit);
   };
+
+  const onSubmit = (data: LoginFormData) => {
+    // In a real app, you would typically validate credentials here
+    console.log('Login successful then onSuccess', data);
+    onSuccess();
+    return Promise.resolve();
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
