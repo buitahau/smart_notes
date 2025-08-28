@@ -8,19 +8,19 @@ export const useLoginForm = () => {
     password: '',
     rememberMe: false,
   });
-  
+
   const [errors, setErrors] = useState<LoginErrors>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const updateField = (field: keyof LoginFormData, value: string | boolean) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[field as keyof LoginErrors]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
         [field]: undefined,
       }));
@@ -37,9 +37,9 @@ export const useLoginForm = () => {
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       if (onSubmit) {
         await onSubmit(formData);

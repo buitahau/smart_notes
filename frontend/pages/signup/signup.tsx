@@ -1,30 +1,60 @@
-import { User, Mail, Lock, Check } from "lucide-react";
-import { useSignupForm } from "@features/signup";
-import { SignupHeader, SignupFooter, SocialButton } from "@features/signup";
-import { InputField, ErrorMessage } from "@features/login";
-import "./signup.css";
-import { SignupProps } from "@types/signup";
+import { User, Mail, Lock, Check } from 'lucide-react';
+import { useSignupForm } from '@features/signup';
+import { SignupHeader, SignupFooter, SocialButton } from '@features/signup';
+import { InputField, ErrorMessage } from '@features/login';
+import './signup.css';
+import { SignupFormData, SignupProps } from '@types/signup';
+import { useMiniRouter } from '@context/router-context';
+import { signUp } from '@services/auth-service';
 
-export function Signup({
-  onSubmit,
-  onGoogleSignup,
-  onFacebookSignup,
-  onSignIn,
-}: SignupProps = {}) {
-  const { formData, errors, isLoading, updateField, handleSubmit } =
-    useSignupForm();
+export function Signup({}: SignupProps = {}) {
+  const { navigate } = useMiniRouter();
+  const { formData, errors, isLoading, updateField, handleSubmit } = useSignupForm();
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSubmit(onSubmit);
   };
 
+  const onSignIn = () => {
+    navigate('login');
+  };
+
+  const onGoogleSignup = () => {
+    // Handle Google OAuth signup
+    console.log('Google signup initiated');
+    // In a real app, you would integrate with Google OAuth
+    navigate('home');
+  };
+
+  const onFacebookSignup = () => {
+    // Handle Facebook OAuth signup
+    console.log('Facebook signup initiated');
+    // In a real app, you would integrate with Facebook OAuth
+    navigate('home');
+  };
+
+  const onSubmit = async (data: SignupFormData) => {
+    try {
+      console.log('Attempting signup', data);
+      const response = await signUp(data);
+
+      if (response.error) {
+        console.error('Signup failed:', response.error);
+        // Handle signup error (show error message to user)
+        return;
+      }
+
+      console.log('Signup successful', response.user);
+      navigate('home');
+    } catch (error) {
+      console.error('Unexpected error during signup:', error);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    updateField(
-      name as keyof typeof formData,
-      type === "checkbox" ? checked : value
-    );
+    updateField(name as keyof typeof formData, type === 'checkbox' ? checked : value);
   };
 
   return (
@@ -35,16 +65,8 @@ export function Signup({
 
       {/* Social Login Buttons */}
       <div className="signup-social-section">
-        <SocialButton
-          provider="google"
-          onClick={onGoogleSignup}
-          disabled={isLoading}
-        />
-        <SocialButton
-          provider="facebook"
-          onClick={onFacebookSignup}
-          disabled={isLoading}
-        />
+        <SocialButton provider="google" onClick={onGoogleSignup} disabled={isLoading} />
+        <SocialButton provider="facebook" onClick={onFacebookSignup} disabled={isLoading} />
       </div>
 
       <div className="signup-divider">
@@ -131,23 +153,21 @@ export function Signup({
               onChange={handleInputChange}
             />
             <label htmlFor="agreeToTerms" className="signup-terms-label">
-              I agree to the{" "}
+              I agree to the{' '}
               <a href="#" className="signup-terms-link">
                 Terms and Conditions
-              </a>{" "}
-              and{" "}
+              </a>{' '}
+              and{' '}
               <a href="#" className="signup-terms-link">
                 Privacy Policy
               </a>
             </label>
           </div>
-          {errors.agreeToTerms && (
-            <div className="signup-field-error">{errors.agreeToTerms}</div>
-          )}
+          {errors.agreeToTerms && <div className="signup-field-error">{errors.agreeToTerms}</div>}
         </div>
 
         <button type="submit" disabled={isLoading} className="signup-button">
-          {isLoading ? "Creating account..." : "Create account"}
+          {isLoading ? 'Creating account...' : 'Create account'}
         </button>
       </form>
 

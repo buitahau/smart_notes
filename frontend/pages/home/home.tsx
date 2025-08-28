@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   User as UserIcon,
@@ -9,7 +8,7 @@ import {
   LogOut as LogOutIcon,
   Calendar as CalendarIcon,
   Check as CheckIcon,
-  X as XIcon
+  X as XIcon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
@@ -30,9 +29,9 @@ export function Home() {
     {
       id: '1',
       type: 'ai',
-      content: 'Hello! I\'m your AI assistant. How can I help you with your notes today?',
-      timestamp: new Date()
-    }
+      content: "Hello! I'm your AI assistant. How can I help you with your notes today?",
+      timestamp: new Date(),
+    },
   ]);
   const [inputText, setInputText] = useState('');
   const [userName] = useState('John Doe'); // This would come from auth context
@@ -41,11 +40,16 @@ export function Home() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<NoteFormData>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<NoteFormData>({
     defaultValues: {
       content: '',
-      date: new Date().toISOString().split('T')[0]
-    }
+      date: new Date().toISOString().split('T')[0],
+    },
   });
 
   const handleCreateNote = () => {
@@ -71,10 +75,10 @@ export function Home() {
       id: Date.now().toString(),
       type: 'user',
       content: inputText,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
     setInputText('');
 
     // TODO: Send to AI and get response
@@ -83,9 +87,9 @@ export function Home() {
         id: (Date.now() + 1).toString(),
         type: 'ai',
         content: 'I received your message: "' + inputText + '". How can I help you with this?',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages((prev) => [...prev, aiResponse]);
     }, 1000);
   };
 
@@ -134,10 +138,13 @@ export function Home() {
           <div style={styles.userSection} onClick={toggleUserMenu}>
             <UserIcon size={20} style={styles.userIcon} />
             <span style={styles.userName}>{userName}</span>
-            <ChevronDownIcon size={14} style={{
-              ...styles.chevronIcon,
-              transform: showUserMenu ? 'rotate(180deg)' : 'rotate(0deg)'
-            }} />
+            <ChevronDownIcon
+              size={14}
+              style={{
+                ...styles.chevronIcon,
+                transform: showUserMenu ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+            />
           </div>
 
           {/* User dropdown menu */}
@@ -169,7 +176,7 @@ export function Home() {
               key={message.id}
               style={{
                 ...styles.message,
-                ...(message.type === 'user' ? styles.userMessage : styles.aiMessage)
+                ...(message.type === 'user' ? styles.userMessage : styles.aiMessage),
               }}
             >
               <div style={styles.messageHeader}>
@@ -180,9 +187,7 @@ export function Home() {
                   {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
-              <div style={styles.messageContent}>
-                {message.content}
-              </div>
+              <div style={styles.messageContent}>{message.content}</div>
             </div>
           ))}
         </div>
@@ -202,7 +207,7 @@ export function Home() {
           <button
             style={{
               ...styles.sendButton,
-              ...(inputText.trim() ? styles.sendButtonActive : {})
+              ...(inputText.trim() ? styles.sendButtonActive : {}),
             }}
             onClick={handleSendMessage}
             disabled={!inputText.trim()}
@@ -229,11 +234,11 @@ export function Home() {
                 <textarea
                   {...register('content', {
                     required: 'Note content is required',
-                    minLength: { value: 1, message: 'Note content cannot be empty' }
+                    minLength: { value: 1, message: 'Note content cannot be empty' },
                   })}
                   style={{
                     ...styles.formTextArea,
-                    ...(errors.content ? styles.formInputError : {})
+                    ...(errors.content ? styles.formInputError : {}),
                   }}
                   placeholder="Write your note here..."
                   rows={3}
@@ -253,27 +258,18 @@ export function Home() {
                   {...register('date', { required: 'Date is required' })}
                   style={{
                     ...styles.formInput,
-                    ...(errors.date ? styles.formInputError : {})
+                    ...(errors.date ? styles.formInputError : {}),
                   }}
                 />
-                {errors.date && (
-                  <span style={styles.errorMessage}>{errors.date.message}</span>
-                )}
+                {errors.date && <span style={styles.errorMessage}>{errors.date.message}</span>}
               </div>
 
               <div style={styles.formActions}>
-                <button
-                  type="button"
-                  onClick={handleCancelNote}
-                  style={styles.cancelButton}
-                >
+                <button type="button" onClick={handleCancelNote} style={styles.cancelButton}>
                   <XIcon size={16} />
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  style={styles.submitButton}
-                >
+                <button type="submit" style={styles.submitButton}>
                   <CheckIcon size={16} />
                   Create Note
                 </button>
@@ -295,7 +291,8 @@ const styles = {
     width: '100%',
     maxWidth: '400px',
     backgroundColor: '#ffffff',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     borderRadius: '12px',
     boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
     overflow: 'hidden',

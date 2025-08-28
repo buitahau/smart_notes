@@ -1,4 +1,4 @@
-import { UserPlus } from "lucide-react";
+import { UserPlus } from 'lucide-react';
 
 export function SignupHeader() {
   return (

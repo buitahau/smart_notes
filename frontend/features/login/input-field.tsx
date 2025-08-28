@@ -31,9 +31,7 @@ export const InputField = ({
         {label}
       </label>
       <div className="login-input-container">
-        <div className="login-input-icon">
-          {icon}
-        </div>
+        <div className="login-input-icon">{icon}</div>
         <input
           id={id}
           name={name}
@@ -45,9 +43,7 @@ export const InputField = ({
           placeholder={placeholder}
         />
       </div>
-      {error && (
-        <p className="login-field-error">{error}</p>
-      )}
+      {error && <p className="login-field-error">{error}</p>}
     </div>
   );
 };

@@ -26,7 +26,7 @@ declare const browser: {
 
 export default defineBackground(() => {
   console.log('Background script loaded');
-  
+
   // Listen for installation/update events
   browser.runtime.onInstalled.addListener((details) => {
     if (details.reason === 'install') {
@@ -35,12 +35,12 @@ export default defineBackground(() => {
       console.log('Extension updated');
     }
   });
-  
+
   // Listen for messages from other parts of the extension
   browser.runtime.onMessage.addListener((message: unknown, _sender, _sendResponse) => {
     const msg = message as BackgroundMessage;
     console.log('Message received in background script:', msg);
-    
+
     // Handle different message types
     if (msg && typeof msg === 'object' && 'type' in msg) {
       switch (msg.type) {
@@ -52,7 +52,7 @@ export default defineBackground(() => {
       }
     }
   });
-  
+
   // Cleanup function
   return () => {
     console.log('Background script unloaded');

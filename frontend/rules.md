@@ -40,7 +40,6 @@ Do not finalize output until:
   - `services/` → external calls
   - `utils/` → shared utilities
 - Code must be:
-
   - Maintainable (modular)
   - Scalable (extensible)
   - Easy to read (clear naming)
@@ -54,13 +53,11 @@ Do not finalize output until:
 ## 📦 CODE GENERATION RULES
 
 - ✅ Generated code must:
-
   - Use best practices of the target language and framework
   - Be self-contained and testable
   - Include test files for new logic
 
 - ❌ Do not:
-
   - Embed business logic inside components
   - Use hardcoded API URLs or inline Supabase calls
 
@@ -125,7 +122,6 @@ Before finalizing output:
   - Use `React Hook Form` unless custom handler exists
   - All fields must have visible labels and validation
 - ✅ Icons:
-
   - Import from `lucide-react`
   - All icon components must use `Icon` suffix  
     e.g., `HomeIcon`, `SearchIcon`

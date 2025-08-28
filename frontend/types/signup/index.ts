@@ -1,3 +1,3 @@
-import { SignupFormData, SignupErrors, SignupProps, SignUpResponse} from "./signup";
+import { SignupFormData, SignupErrors, SignupProps, SignUpResponse } from './signup';
 
-export type { SignupFormData, SignupErrors, SignupProps, SignUpResponse};
+export type { SignupFormData, SignupErrors, SignupProps, SignUpResponse };

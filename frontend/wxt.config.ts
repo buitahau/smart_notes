@@ -37,6 +37,18 @@ export default defineConfig({
           find: '@types',
           replacement: resolve(__dirname, './types'),
         },
+        {
+          find: '@context',
+          replacement: resolve(__dirname, './context'),
+        },
+        {
+          find: '@utils',
+          replacement: resolve(__dirname, './utils'),
+        },
+        {
+          find: '@guard',
+          replacement: resolve(__dirname, './guard'),
+        },
       ],
     },
   }),

@@ -13,7 +13,7 @@ export function SignupFooter({ onSignIn }: SignupFooterProps) {
   return (
     <div className="signup-footer">
       <p className="signup-footer-text">
-        Already have an account?{" "}
+        Already have an account?{' '}
         <a href="#" className="signup-signin-link" onClick={handleSignInClick}>
           Sign in
         </a>
