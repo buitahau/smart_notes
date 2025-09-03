@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { LoginFormData, LoginErrors } from '@types/login';
+import { LoginFormData, LoginErrors, LoginResponse } from '@types/login';
 import { validateLoginForm } from '@features/login/utils';
+import { useMiniRouter } from '@context/router-context';
 
 export const useLoginForm = () => {
+  const { navigate } = useMiniRouter();
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
@@ -33,7 +35,7 @@ export const useLoginForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (onSubmit?: (data: LoginFormData) => Promise<void>) => {
+  const handleSubmit = async (onSubmit?: (data: LoginFormData) => Promise<LoginResponse>) => {
     if (!validateForm()) {
       return;
     }
@@ -42,7 +44,15 @@ export const useLoginForm = () => {
 
     try {
       if (onSubmit) {
-        await onSubmit(formData);
+        const response = await onSubmit(formData);
+        if (!response.error) {
+          navigate('home');
+        }
+        if (response.error) {
+          const errors: LoginErrors = {};
+          errors.general = 'Invalid email or password';
+          setErrors(errors);
+        }
       } else {
         // Default behavior - log to console
         console.log('Login attempt with:', formData);

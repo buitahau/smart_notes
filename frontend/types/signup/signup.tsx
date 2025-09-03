@@ -25,7 +25,6 @@ export interface SignupProps {
 }
 
 export interface SignUpResponse {
-  user: any | null;
-  session: any | null;
+  username: any | null;
   error: string | null;
 }

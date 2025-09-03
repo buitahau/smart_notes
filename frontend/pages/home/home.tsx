@@ -11,6 +11,11 @@ import {
   X as XIcon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { storage } from '@utils/storage';
+import { logout } from '@services/auth-service';
+import { useMiniRouter } from '@context/router-context';
+import { STORAGE_KEYS } from '@utils/constants';
+import { UserDetails } from '@types/login';
 
 interface Message {
   id: string;
@@ -34,11 +39,12 @@ export function Home() {
     },
   ]);
   const [inputText, setInputText] = useState('');
-  const [userName] = useState('John Doe'); // This would come from auth context
+  const [userName, setUserName] = useState(''); // This would come from auth context
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCreateNoteModal, setShowCreateNoteModal] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const { navigate } = useMiniRouter();
 
   const {
     register,
@@ -110,14 +116,20 @@ export function Home() {
     setShowUserMenu(false);
   };
 
-  const handleLogout = () => {
-    // TODO: Implement logout functionality
-    console.log('Logout user');
-    setShowUserMenu(false);
+  const handleLogout = async () => {
+    await storage.clear();
+    await logout();
+    navigate('login');
   };
 
   // Close menu when clicking outside
   useEffect(() => {
+    const loadProfile = async () => {
+      const userDetail = (await storage.get(STORAGE_KEYS.USER)) as UserDetails;
+      setUserName(userDetail.username ?? '');
+    };
+    loadProfile();
+
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);

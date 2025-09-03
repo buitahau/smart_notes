@@ -1,4 +1,6 @@
-type StorageKeys = 'token' | 'user';
+import { STORAGE_KEYS } from './constants';
+
+export type StorageKeys = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
 
 export const storage = {
   async set<T>(key: StorageKeys, value: T): Promise<void> {

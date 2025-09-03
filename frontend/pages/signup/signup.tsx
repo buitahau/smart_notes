@@ -6,6 +6,7 @@ import './signup.css';
 import { SignupFormData, SignupProps } from '@types/signup';
 import { useMiniRouter } from '@context/router-context';
 import { signUp } from '@services/auth-service';
+import { NotificationMessageProps } from '@types/login';
 
 export function Signup({}: SignupProps = {}) {
   const { navigate } = useMiniRouter();
@@ -35,21 +36,24 @@ export function Signup({}: SignupProps = {}) {
   };
 
   const onSubmit = async (data: SignupFormData) => {
-    try {
-      console.log('Attempting signup', data);
-      const response = await signUp(data);
+    const response = await signUp(data);
 
-      if (response.error) {
-        console.error('Signup failed:', response.error);
-        // Handle signup error (show error message to user)
-        return;
-      }
-
-      console.log('Signup successful', response.user);
-      navigate('home');
-    } catch (error) {
-      console.error('Unexpected error during signup:', error);
+    if (response.error) {
+      console.error('Signup failed:', response.error);
+      navigate('login', {
+        notification: {
+          type: 'error',
+          message: 'Registration failed. Please try again later or contact support.',
+        } as NotificationMessageProps,
+      });
+      return;
     }
+    navigate('login', {
+      notification: {
+        type: 'success',
+        message: 'Registration successful! Please check your email to verify your account.',
+      } as NotificationMessageProps,
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
