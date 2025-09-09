@@ -144,6 +144,40 @@ class NoteService {
       };
     }
   }
+
+  async getNotesByIds(noteIds, userId) {
+    try {
+      if (!noteIds || !Array.isArray(noteIds) || noteIds.length === 0) {
+        return {
+          success: true,
+          notes: []
+        };
+      }
+
+      const { data, error } = await supabase
+        .from("notes")
+        .select("*")
+        .in("id", noteIds)
+        .eq("user_id", userId);
+
+      if (error) {
+        throw error;
+      }
+
+      const notes = data.map(row => Note.fromSupabaseRow(row));
+
+      return {
+        success: true,
+        notes: notes
+      };
+    } catch (error) {
+      console.error('Error fetching notes by IDs:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
 }
 
 module.exports = new NoteService();

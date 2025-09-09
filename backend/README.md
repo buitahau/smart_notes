@@ -21,5 +21,5 @@ Serverless backend services running on Cloudflare Workers.
 ```bash
 cd backend
 npm install
-npm run dev
+npm start
 ```

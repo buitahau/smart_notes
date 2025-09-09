@@ -20,6 +20,9 @@ export const API_ENDPOINTS = {
     BASE: '/api/notes',
     BY_ID: (id: string) => `/api/notes/${id}`,
   },
+  QUERY: {
+    BASE: '/api/query',
+  },
 } as const;
 
 /**

@@ -15,6 +15,7 @@ import { useMiniRouter } from '@context/router-context';
 import { STORAGE_KEYS } from '@utils/constants';
 import { UserDetails } from '@types/login';
 import { noteService, Note } from '@services/note-service';
+import { queryService } from '@services/query-service';
 
 interface Message {
   id: string;
@@ -49,75 +50,38 @@ export function Home() {
     if (!inputText.trim()) return;
 
     const userInput = inputText.trim().toLowerCase();
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: inputText,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
+     // Show loading indicator
+     const loadingMessageId = `loading-${Date.now()}`;
+     setMessages(prev => [...prev, {
+       id: loadingMessageId,
+       type: 'ai',
+       content: 'Thinking...',
+       timestamp: new Date(),
+     }]);
     const originalInput = inputText;
     setInputText('');
 
-    // Check if user is asking for "my notes today"
-    if (userInput.includes('my notes today') || userInput.includes('notes today') || userInput.includes('today notes')) {
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const result = await noteService.getNotes({
-          limit: 50,
-          sortBy: 'createdAt',
-          sortOrder: 'desc',
-        });
-
-        // Filter notes for today
-        const todayNotes = result.notes.filter(note => {
-          const noteDate = note.date || note.createdAt;
-          return noteDate.startsWith(today);
-        });
-
-        // Create a formatted message with notes
-        let notesContent = `Here are your notes for today (${today}):\n\n`;
-        
-        if (todayNotes.length === 0) {
-          notesContent += "No notes found for today.";
-        } else {
-          todayNotes.forEach((note, index) => {
-            const noteDate = new Date(note.date || note.createdAt);
-            const timeString = noteDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            notesContent += `📝 **${timeString}**\n${note.content}\n\n`;
-          });
-        }
-
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'ai',
-          content: notesContent,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, aiResponse]);
-      } catch (error) {
-        console.error('Failed to fetch notes:', error);
-        const errorResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'ai',
-          content: 'Sorry, I encountered an error while fetching your notes. Please try again later.',
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, errorResponse]);
-      }
+    // Call query service
+    const response = await queryService.sendQuery(userInput);
+    const todayNotes = response.notes;
+    let notesContent = "";
+    if (todayNotes.length === 0) {
+      notesContent += "No notes found for today.";
     } else {
-      // Regular AI response for other queries
-      setTimeout(() => {
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'ai',
-          content: 'I received your message: "' + originalInput + '". How can I help you with this?',
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, aiResponse]);
-      }, 1000);
+      todayNotes.forEach((note, index) => {
+        const noteDate = new Date(note.date || note.createdAt);
+        const timeString = noteDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        notesContent += `📝 **${timeString}**\n${note.content}\n\n`;
+      });
     }
+
+    const aiResponse: Message = {
+      id: (Date.now() + 1).toString(),
+      type: 'ai',
+      content: notesContent,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, aiResponse]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
