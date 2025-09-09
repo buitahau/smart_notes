@@ -1,9 +1,10 @@
 class Note {
-  constructor(id, userId, content, date = new Date()) {
+  constructor(id, userId, content, dateAt, createdAt = new Date()) {
     this.id = id;
     this.userId = userId;
     this.content = content;
-    this.date = date;
+    this.dateAt = dateAt; // User-specified date for the note
+    this.createdAt = createdAt; // System timestamp when note was created
   }
 
   static fromSupabaseRow(row) {
@@ -11,6 +12,7 @@ class Note {
       row.id,
       row.user_id,
       row.content,
+      row.date_at ? new Date(row.date_at) : null,
       new Date(row.created_at)
     );
   }
@@ -20,7 +22,8 @@ class Note {
       id: this.id,
       userId: this.userId,
       content: this.content,
-      date: this.date
+      dateAt: this.dateAt,
+      createdAt: this.createdAt
     };
   }
 }

@@ -16,6 +16,10 @@ export const API_ENDPOINTS = {
     VALIDATE: '/api/auth/validate',
     LOGOUT: '/api/auth/logout',
   },
+  NOTES: {
+    BASE: '/api/notes',
+    BY_ID: (id: string) => `/api/notes/${id}`,
+  },
 } as const;
 
 /**

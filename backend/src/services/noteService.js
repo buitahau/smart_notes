@@ -1,18 +1,23 @@
-const supabase = require('../config/supabase');
-const Note = require('../models/Note');
+const supabase = require("../config/supabase");
+const Note = require("../models/Note");
 
 class NoteService {
-  async createNote(userId, content) {
+  async createNote(userId, content, dateAt = null) {
     try {
+      const noteData = {
+        user_id: userId,
+        content: content,
+        created_at: new Date().toISOString(),
+      };
+
+      // Add date_at if provided
+      if (dateAt) {
+        noteData.date_at = new Date(dateAt).toISOString();
+      }
+
       const { data, error } = await supabase
-        .from('notes')
-        .insert([
-          {
-            user_id: userId,
-            content: content,
-            created_at: new Date().toISOString()
-          }
-        ])
+        .from("notes")
+        .insert([noteData])
         .select()
         .single();
 
@@ -22,12 +27,12 @@ class NoteService {
 
       return {
         success: true,
-        note: Note.fromSupabaseRow(data)
+        note: Note.fromSupabaseRow(data),
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -35,26 +40,26 @@ class NoteService {
   async getNotesByUserId(userId, limit = 50, offset = 0) {
     try {
       const { data, error } = await supabase
-        .from('notes')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+        .from("notes")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
 
       if (error) {
         throw error;
       }
 
-      const notes = data.map(row => Note.fromSupabaseRow(row));
+      const notes = data.map((row) => Note.fromSupabaseRow(row));
 
       return {
         success: true,
-        notes: notes
+        notes: notes,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -62,10 +67,10 @@ class NoteService {
   async getNoteById(noteId, userId) {
     try {
       const { data, error } = await supabase
-        .from('notes')
-        .select('*')
-        .eq('id', noteId)
-        .eq('user_id', userId)
+        .from("notes")
+        .select("*")
+        .eq("id", noteId)
+        .eq("user_id", userId)
         .single();
 
       if (error) {
@@ -74,23 +79,30 @@ class NoteService {
 
       return {
         success: true,
-        note: Note.fromSupabaseRow(data)
+        note: Note.fromSupabaseRow(data),
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
 
-  async updateNote(noteId, userId, content) {
+  async updateNote(noteId, userId, content, dateAt = null) {
     try {
+      const updateData = { content: content };
+
+      // Add date_at to update if provided
+      if (dateAt !== null) {
+        updateData.date_at = new Date(dateAt).toISOString();
+      }
+
       const { data, error } = await supabase
-        .from('notes')
-        .update({ content: content })
-        .eq('id', noteId)
-        .eq('user_id', userId)
+        .from("notes")
+        .update(updateData)
+        .eq("id", noteId)
+        .eq("user_id", userId)
         .select()
         .single();
 
@@ -100,12 +112,12 @@ class NoteService {
 
       return {
         success: true,
-        note: Note.fromSupabaseRow(data)
+        note: Note.fromSupabaseRow(data),
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -113,22 +125,22 @@ class NoteService {
   async deleteNote(noteId, userId) {
     try {
       const { error } = await supabase
-        .from('notes')
+        .from("notes")
         .delete()
-        .eq('id', noteId)
-        .eq('user_id', userId);
+        .eq("id", noteId)
+        .eq("user_id", userId);
 
       if (error) {
         throw error;
       }
 
       return {
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

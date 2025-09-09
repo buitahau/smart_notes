@@ -4,7 +4,11 @@ import { STORAGE_KEYS, API_ENDPOINTS } from '@utils/constants';
 
 const BACKEND_URL = import.meta.env.BACKEND_URL || 'http://localhost:3000';
 
-const PROTECTED_APIS = [API_ENDPOINTS.AUTH.VALIDATE, API_ENDPOINTS.AUTH.LOGOUT] as const;
+const PROTECTED_APIS = [
+  API_ENDPOINTS.AUTH.VALIDATE,
+  API_ENDPOINTS.AUTH.LOGOUT,
+  API_ENDPOINTS.NOTES.BASE,
+] as const;
 
 // Create axios instance with base configuration
 const apiClient = axios.create({
@@ -17,8 +21,12 @@ const apiClient = axios.create({
 // Add request interceptor to include bearer token for protected routes
 apiClient.interceptors.request.use(
   async (config) => {
-    // Add bearer token for protected routes (like validate)
-    if (PROTECTED_APIS.some((endpoint) => config.url?.includes(endpoint))) {
+    // Add bearer token for protected routes (auth and notes endpoints)
+    const isProtectedRoute =
+      PROTECTED_APIS.some((endpoint) => config.url?.includes(endpoint)) ||
+      config.url?.includes('/api/notes');
+
+    if (isProtectedRoute) {
       try {
         const token = await storage.get(STORAGE_KEYS.TOKEN);
         if (token) {

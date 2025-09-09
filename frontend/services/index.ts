@@ -1,2 +1,3 @@
+export * from './api-client';
 export * from './auth-service';
-export * from './supabase-client-service';
+export * from './note-service';

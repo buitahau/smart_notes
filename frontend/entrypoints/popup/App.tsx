@@ -5,6 +5,7 @@ import { Home } from '@pages/home';
 
 import { RouterProvider, useMiniRouter } from '@context/router-context';
 import { RequiredAuth } from '@guard/require-auth';
+import { CreateNote } from '@pages/create-note';
 
 // This component contains the main app logic and uses the router
 const AppContent: React.FC = () => {
@@ -18,6 +19,12 @@ const AppContent: React.FC = () => {
         return (
           <RequiredAuth>
             <Home />
+          </RequiredAuth>
+        );
+      case 'create-note':
+        return (
+          <RequiredAuth>
+            <CreateNote />
           </RequiredAuth>
         );
       case 'login':
