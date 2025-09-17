@@ -6,6 +6,7 @@ import { Home } from '@pages/home';
 import { RouterProvider, useMiniRouter } from '@context/router-context';
 import { RequiredAuth } from '@guard/require-auth';
 import { CreateNote } from '@pages/create-note';
+import { ChatProvider } from '@context/chat-context';
 
 // This component contains the main app logic and uses the router
 const AppContent: React.FC = () => {
@@ -39,11 +40,13 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <RouterProvider initial="login">
-      <div className="app-container">
-        <div className="app-content">
-          <AppContent />
+      <ChatProvider>
+        <div className="app-container">
+          <div className="app-content">
+            <AppContent />
+          </div>
         </div>
-      </div>
+      </ChatProvider>
     </RouterProvider>
   );
 };
