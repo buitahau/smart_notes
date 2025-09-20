@@ -23,7 +23,7 @@ class Note {
       userId: this.userId,
       content: this.content,
       dateAt: this.dateAt,
-      createdAt: this.createdAt
+      createdAt: this.createdAt,
     };
   }
 }

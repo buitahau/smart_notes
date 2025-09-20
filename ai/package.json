@@ -8,12 +8,15 @@
     "scripts": {
         "dev": "wrangler dev",
         "deploy": "wrangler deploy",
-        "start": "wrangler dev"
+        "start": "wrangler dev",
+        "format": "prettier --write \"src/**/*.{js,json}\"",
+        "format:check": "prettier --check \"src/**/*.{js,json}\""
     },
     "dependencies": {
         "hono": "^4.4.7"
     },
     "devDependencies": {
+        "prettier": "^3.6.2",
         "wrangler": "^4.35.0"
     }
 }

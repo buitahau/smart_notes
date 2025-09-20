@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const noteRoutes = require('./routes/notes');
-const queryRoutes = require('./routes/query')
+const queryRoutes = require('./routes/query');
 
 const app = express();
 const PORT = process.env.PORT || 3000;

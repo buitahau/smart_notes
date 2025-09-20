@@ -11,14 +11,14 @@ class NoteController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          message: 'User authentication required'
+          message: 'User authentication required',
         });
       }
 
       if (!content || typeof content !== 'string' || content.trim() === '') {
         return res.status(400).json({
           success: false,
-          message: 'Note content is required and must be a non-empty string'
+          message: 'Note content is required and must be a non-empty string',
         });
       }
 
@@ -27,7 +27,7 @@ class NoteController {
       if (trimmedContent.length > 10000) {
         return res.status(400).json({
           success: false,
-          message: 'Note content exceeds maximum length of 10,000 characters'
+          message: 'Note content exceeds maximum length of 10,000 characters',
         });
       }
 
@@ -37,7 +37,7 @@ class NoteController {
         if (typeof date !== 'string') {
           return res.status(400).json({
             success: false,
-            message: 'Date must be a valid ISO string'
+            message: 'Date must be a valid ISO string',
           });
         }
 
@@ -45,7 +45,8 @@ class NoteController {
         if (isNaN(parsedDate.getTime())) {
           return res.status(400).json({
             success: false,
-            message: 'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)'
+            message:
+              'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
           });
         }
 
@@ -55,32 +56,36 @@ class NoteController {
         if (parsedDate > oneYearFromNow) {
           return res.status(400).json({
             success: false,
-            message: 'Date cannot be more than one year in the future'
+            message: 'Date cannot be more than one year in the future',
           });
         }
 
         dateAt = parsedDate;
       }
 
-      const result = await noteService.createNote(userId, trimmedContent, dateAt);
+      const result = await noteService.createNote(
+        userId,
+        trimmedContent,
+        dateAt
+      );
 
       if (!result.success) {
         return res.status(400).json({
           success: false,
-          message: result.error || 'Failed to create note'
+          message: result.error || 'Failed to create note',
         });
       }
 
       res.status(201).json({
         success: true,
         message: 'Note created successfully',
-        note: result.note
+        note: result.note,
       });
     } catch (error) {
       console.error('Error creating note:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error while creating note'
+        message: 'Internal server error while creating note',
       });
     }
   }
@@ -93,7 +98,7 @@ class NoteController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          message: 'User authentication required'
+          message: 'User authentication required',
         });
       }
 
@@ -107,13 +112,13 @@ class NoteController {
       const result = await noteService.getNotesByUserId(userId, limit, offset, {
         search: search?.trim(),
         sortBy,
-        sortOrder
+        sortOrder,
       });
 
       if (!result.success) {
         return res.status(400).json({
           success: false,
-          message: result.error || 'Failed to retrieve notes'
+          message: result.error || 'Failed to retrieve notes',
         });
       }
 
@@ -124,14 +129,14 @@ class NoteController {
           limit,
           offset,
           count: result.notes.length,
-          hasMore: result.notes.length === limit
-        }
+          hasMore: result.notes.length === limit,
+        },
       });
     } catch (error) {
       console.error('Error retrieving notes:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error while retrieving notes'
+        message: 'Internal server error while retrieving notes',
       });
     }
   }
@@ -145,7 +150,7 @@ class NoteController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          message: 'User authentication required'
+          message: 'User authentication required',
         });
       }
 
@@ -153,7 +158,7 @@ class NoteController {
       if (!id || typeof id !== 'string' || id.trim() === '') {
         return res.status(400).json({
           success: false,
-          message: 'Valid note ID is required'
+          message: 'Valid note ID is required',
         });
       }
 
@@ -162,19 +167,19 @@ class NoteController {
       if (!result.success) {
         return res.status(404).json({
           success: false,
-          message: result.error || 'Note not found or access denied'
+          message: result.error || 'Note not found or access denied',
         });
       }
 
       res.json({
         success: true,
-        note: result.note
+        note: result.note,
       });
     } catch (error) {
       console.error('Error retrieving note by ID:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error while retrieving note'
+        message: 'Internal server error while retrieving note',
       });
     }
   }
@@ -190,7 +195,7 @@ class NoteController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          message: 'User authentication required'
+          message: 'User authentication required',
         });
       }
 
@@ -198,14 +203,14 @@ class NoteController {
       if (!id || typeof id !== 'string' || id.trim() === '') {
         return res.status(400).json({
           success: false,
-          message: 'Valid note ID is required'
+          message: 'Valid note ID is required',
         });
       }
 
       if (!content || typeof content !== 'string' || content.trim() === '') {
         return res.status(400).json({
           success: false,
-          message: 'Note content is required and must be a non-empty string'
+          message: 'Note content is required and must be a non-empty string',
         });
       }
 
@@ -214,7 +219,7 @@ class NoteController {
       if (trimmedContent.length > 10000) {
         return res.status(400).json({
           success: false,
-          message: 'Note content exceeds maximum length of 10,000 characters'
+          message: 'Note content exceeds maximum length of 10,000 characters',
         });
       }
 
@@ -224,7 +229,7 @@ class NoteController {
         if (typeof date !== 'string') {
           return res.status(400).json({
             success: false,
-            message: 'Date must be a valid ISO string'
+            message: 'Date must be a valid ISO string',
           });
         }
 
@@ -232,7 +237,8 @@ class NoteController {
         if (isNaN(parsedDate.getTime())) {
           return res.status(400).json({
             success: false,
-            message: 'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)'
+            message:
+              'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
           });
         }
 
@@ -242,32 +248,37 @@ class NoteController {
         if (parsedDate > oneYearFromNow) {
           return res.status(400).json({
             success: false,
-            message: 'Date cannot be more than one year in the future'
+            message: 'Date cannot be more than one year in the future',
           });
         }
 
         dateAt = parsedDate;
       }
 
-      const result = await noteService.updateNote(id.trim(), userId, trimmedContent, dateAt);
+      const result = await noteService.updateNote(
+        id.trim(),
+        userId,
+        trimmedContent,
+        dateAt
+      );
 
       if (!result.success) {
         return res.status(404).json({
           success: false,
-          message: result.error || 'Note not found or update failed'
+          message: result.error || 'Note not found or update failed',
         });
       }
 
       res.json({
         success: true,
         message: 'Note updated successfully',
-        note: result.note
+        note: result.note,
       });
     } catch (error) {
       console.error('Error updating note:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error while updating note'
+        message: 'Internal server error while updating note',
       });
     }
   }
@@ -282,7 +293,7 @@ class NoteController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          message: 'User authentication required'
+          message: 'User authentication required',
         });
       }
 
@@ -290,7 +301,7 @@ class NoteController {
       if (!id || typeof id !== 'string' || id.trim() === '') {
         return res.status(400).json({
           success: false,
-          message: 'Valid note ID is required'
+          message: 'Valid note ID is required',
         });
       }
 
@@ -299,19 +310,19 @@ class NoteController {
       if (!result.success) {
         return res.status(404).json({
           success: false,
-          message: result.error || 'Note not found or delete failed'
+          message: result.error || 'Note not found or delete failed',
         });
       }
 
       res.json({
         success: true,
-        message: 'Note deleted successfully'
+        message: 'Note deleted successfully',
       });
     } catch (error) {
       console.error('Error deleting note:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error while deleting note'
+        message: 'Internal server error while deleting note',
       });
     }
   }

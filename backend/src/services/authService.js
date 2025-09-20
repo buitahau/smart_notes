@@ -5,7 +5,7 @@ class AuthService {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
       if (error) {
@@ -15,12 +15,12 @@ class AuthService {
       return {
         success: true,
         user: data.user,
-        session: data.session
+        session: data.session,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -29,7 +29,7 @@ class AuthService {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
-        password
+        password,
       });
 
       if (error) {
@@ -39,12 +39,12 @@ class AuthService {
       return {
         success: true,
         user: data.user,
-        session: data.session
+        session: data.session,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -58,12 +58,12 @@ class AuthService {
       }
 
       return {
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -79,13 +79,13 @@ class AuthService {
       return {
         success: true,
         user: data.user,
-        valid: true
+        valid: true,
       };
     } catch (error) {
       return {
         success: false,
         valid: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

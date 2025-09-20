@@ -8,7 +8,7 @@ class AuthController {
       if (!email || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Email and password are required'
+          message: 'Email and password are required',
         });
       }
 
@@ -17,19 +17,19 @@ class AuthController {
       if (!result.success) {
         return res.status(401).json({
           success: false,
-          message: result.error
+          message: result.error,
         });
       }
 
       res.json({
         success: true,
         user: result.user,
-        session: result.session
+        session: result.session,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -41,7 +41,7 @@ class AuthController {
       if (!email || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Email and password are required'
+          message: 'Email and password are required',
         });
       }
 
@@ -50,19 +50,19 @@ class AuthController {
       if (!result.success) {
         return res.status(400).json({
           success: false,
-          message: result.error
+          message: result.error,
         });
       }
 
       res.status(201).json({
         success: true,
         user: result.user,
-        session: result.session
+        session: result.session,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -76,18 +76,18 @@ class AuthController {
       if (!result.success) {
         return res.status(400).json({
           success: false,
-          message: result.error
+          message: result.error,
         });
       }
 
       res.json({
         success: true,
-        message: 'Logged out successfully'
+        message: 'Logged out successfully',
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -100,7 +100,7 @@ class AuthController {
         return res.status(401).json({
           success: false,
           valid: false,
-          message: 'No token provided'
+          message: 'No token provided',
         });
       }
 
@@ -110,20 +110,20 @@ class AuthController {
         return res.status(401).json({
           success: false,
           valid: false,
-          message: result.error
+          message: result.error,
         });
       }
 
       res.json({
         success: true,
         valid: true,
-        user: result.user
+        user: result.user,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
         valid: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
