@@ -38,3 +38,12 @@ tmp/
 temp/
 
 ./claude
+
+# backoffice
+backoffice/.node_modules/
+backoffice/.next/
+
+# frontend
+frontend/.node_modules/
+frontend/.output/
+frontend/.wxt/
