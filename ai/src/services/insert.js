@@ -1,5 +1,6 @@
 import { EMBEDDING_MODEL } from '../constants/config.js';
 import { getVectorizeIndexUrl } from '../utils/vectorize.js';
+import { convertDateToTimestamp } from '../utils/date.js';
 import { apiClient } from './fetch.js';
 
 export const insertNote = async c => {
@@ -10,8 +11,7 @@ export const insertNote = async c => {
       400
     );
   }
-  const dateAtTimestmp = '' + Math.floor(new Date(dateAt).getTime() / 1000);
-  console.log('dateAtTimestmp: ', dateAtTimestmp);
+  const dateAtTimestmp = convertDateToTimestamp(dateAt);
   const usermetadata = { noteId, userId, dateAt: dateAtTimestmp };
   console.log('usermetadata: ', usermetadata);
 

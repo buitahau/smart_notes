@@ -15,14 +15,18 @@ const createBaseConfig = (c, customConfig = {}) => {
     headers: {
       Authorization: `Bearer ${c.env.CLOUDFLARE_API_TOKEN}`,
     },
-    ...customConfig,
   };
 
-  if (customConfig.headers) {
-    baseConfig.headers = { ...baseConfig.headers, ...customConfig.headers };
+  const { headers, ...restCustomConfig } = customConfig;
+
+  if (headers) {
+    baseConfig.headers = { ...baseConfig.headers, ...headers };
   }
 
-  return baseConfig;
+  return {
+    ...baseConfig,
+    ...restCustomConfig,
+  };
 };
 
 export const createPostConfig = (c, body, customConfig = {}) => {

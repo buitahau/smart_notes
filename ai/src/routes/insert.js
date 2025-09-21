@@ -3,6 +3,6 @@ import { insertNote } from '../services/insert.js';
 
 const insertRoutes = new Hono();
 
-insertRoutes.post('/', insertNote);
+insertRoutes.post('/insert', insertNote);
 
 export default insertRoutes;

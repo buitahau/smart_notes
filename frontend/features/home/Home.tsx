@@ -54,44 +54,59 @@ export const Home: React.FC = () => {
 
     // Show loading indicator
     const loadingMessageId = `loading-${Date.now()}`;
-    setMessages((prev: Message[]) => [...prev, userMessage, {
+    const loadingMessage: Message = {
       id: loadingMessageId,
       type: 'ai',
       content: 'Thinking',
       timestamp: new Date(),
-    }]);
+    };
+    const updatedMessages = [...messages, userMessage, loadingMessage];
+    setMessages(updatedMessages);
 
     setInputText('');
 
     // Call query service
     try {
       const response = await queryService.sendQuery(userInput.toLowerCase());
-      const todayNotes = response.notes;
+      const notesData = response.notes;
 
       // Remove loading message and add AI response
-      setMessages((prev: Message[]) => {
-        const filteredMessages = prev.filter((msg: Message) => msg.id !== loadingMessageId);
-        const aiResponse: Message = {
+      const filteredMessages = updatedMessages.filter((msg: Message) => msg.id !== loadingMessageId);
+      let aiResponse: Message;
+
+      // Ensure notesData.data is always an array
+      const notesArray = Array.isArray(notesData.data) ? notesData.data : [];
+
+      if (notesData.intent === 'task_list' && notesArray.length > 0) {
+        aiResponse = {
           id: `ai-${Date.now()}`,
           type: 'ai',
-          content: todayNotes.length > 0 ? "Here are your notes for today:" : "No notes found for today.",
+          content: "Here are your tasks:",
           timestamp: new Date(),
-          notes: todayNotes,
+          notes: notesArray,
+          intent: notesData.intent,
         };
-        return [...filteredMessages, aiResponse];
-      });
+      } else {
+        aiResponse = {
+          id: `ai-${Date.now()}`,
+          type: 'ai',
+          content: notesArray.length > 0 ? "Here are your notes:" : "No notes found.",
+          timestamp: new Date(),
+          notes: notesArray,
+          intent: notesData.intent,
+        };
+      }
+      setMessages([...filteredMessages, aiResponse]);
     } catch (error) {
       // Remove loading message and add error response
-      setMessages((prev: Message[]) => {
-        const filteredMessages = prev.filter((msg: Message) => msg.id !== loadingMessageId);
-        const errorResponse: Message = {
-          id: `error-${Date.now()}`,
-          type: 'ai',
-          content: "Sorry, I encountered an error while processing your request. Please try again.",
-          timestamp: new Date(),
-        };
-        return [...filteredMessages, errorResponse];
-      });
+      const filteredMessages = updatedMessages.filter((msg: Message) => msg.id !== loadingMessageId);
+      const errorResponse: Message = {
+        id: `error-${Date.now()}`,
+        type: 'ai',
+        content: "Sorry, I encountered an error while processing your request. Please try again.",
+        timestamp: new Date(),
+      };
+      setMessages([...filteredMessages, errorResponse]);
     }
   };
 
@@ -163,10 +178,10 @@ export const Home: React.FC = () => {
         }
       }
 
-      @keyframes slideIn {
+      @keyframes slideInLeft {
         from {
           opacity: 0;
-          transform: translateX(-10px);
+          transform: translateX(-20px);
         }
         to {
           opacity: 1;
@@ -177,7 +192,7 @@ export const Home: React.FC = () => {
       @keyframes slideInRight {
         from {
           opacity: 0;
-          transform: translateX(10px);
+          transform: translateX(20px);
         }
         to {
           opacity: 1;

@@ -1,7 +1,8 @@
 import React from 'react';
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, Bot as BotIcon } from 'lucide-react';
 import { Note } from '@services/note-service';
 import { Clock as ClockIcon } from 'lucide-react';
+import { getHeaderTitle, getEmptyState } from '@utils';
 
 interface MessageProps {
   message: {
@@ -10,6 +11,7 @@ interface MessageProps {
     content: string;
     timestamp: Date;
     notes?: Note[];
+    intent?: string;
   };
   styles: { [key: string]: React.CSSProperties };
 }
@@ -48,25 +50,34 @@ const NoteCard: React.FC<{ note: Note; index: number; styles: { [key: string]: R
   );
 };
 
-const NotesDisplay: React.FC<{ notes: Note[]; styles: { [key: string]: React.CSSProperties } }> = ({ notes, styles }) => {
-  if (notes.length === 0) {
+const NotesDisplay: React.FC<{
+  notes: Note[] | undefined;
+  styles: { [key: string]: React.CSSProperties };
+  intent?: string;
+  messageContent?: string;
+}> = ({ notes, styles, intent, messageContent }) => {
+  if (!notes || notes.length === 0) {
+    const emptyState = getEmptyState({ intent, messageContent });
+
     return (
       <div style={styles.emptyState}>
-        <div style={styles.emptyStateIcon}>📝</div>
+        <div style={styles.emptyStateIcon}>{emptyState.icon}</div>
         <div style={styles.emptyStateText}>
-          No notes found for today. Create your first note to get started!
+          {emptyState.text}
         </div>
       </div>
     );
   }
 
+  const title = getHeaderTitle({ intent, messageContent });
+
   return (
     <div style={styles.notesContainer}>
       <div style={styles.notesHeader}>
-        <div style={styles.notesTitle}>Today's Notes</div>
-        <div style={styles.notesCount}>{notes.length}</div>
+        <div style={styles.notesTitle}>{title}</div>
+        <div style={styles.notesCount}>{notes?.length || 0}</div>
       </div>
-      {notes.map((note, index) => (
+      {notes?.map((note, index) => (
         <NoteCard key={`${note.id}-${index}`} note={note} index={index} styles={styles} />
       ))}
     </div>
@@ -86,7 +97,7 @@ export const Message: React.FC<MessageProps> = ({ message, styles }) => {
     >
       {isAI && (
         <div style={{...styles.avatar, ...styles.avatarAI}}>
-          <span style={styles.avatarText}>AI</span>
+          <BotIcon size={18} color="white" />
         </div>
       )}
       <div
@@ -102,7 +113,12 @@ export const Message: React.FC<MessageProps> = ({ message, styles }) => {
               <div style={{ marginBottom: '12px', fontSize: '15px', color: '#374151' }}>
                 {message.content}
               </div>
-              <NotesDisplay notes={message.notes} styles={styles} />
+              <NotesDisplay
+                notes={message.notes}
+                styles={styles}
+                intent={message.intent}
+                messageContent={message.content}
+              />
             </div>
           ) : isLoading ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

@@ -1,5 +1,6 @@
 const supabase = require('../config/supabase');
 const Note = require('../models/Note');
+const aiService = require('./aiService');
 
 class NoteService {
   async createNote(userId, content, dateAt = null) {
@@ -24,6 +25,8 @@ class NoteService {
       if (error) {
         throw error;
       }
+
+      await aiService.insertNote(data.id, content, userId, dateAt);
 
       return {
         success: true,

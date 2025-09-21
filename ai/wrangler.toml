@@ -3,7 +3,8 @@ main="src/index.js"
 compatibility_date = "2024-09-01"
 
 [vars]
-
+CLOUDFLARE_ACCOUNT_ID = "6c1ae2ba568182c41bf38bac47fd9515"
+CLOUDFLARE_API_TOKEN = "XSRO_hUz-zVhXKxNNmd8QcQJ2YTG5K-PrxuYeZdE"
 
 [ai]
 binding = "AI"
