@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 
 const AI_BASE_URL = process.env.AI_BASE_URL || 'http://localhost:8787';
 
@@ -49,4 +49,4 @@ class AIService {
   }
 }
 
-module.exports = new AIService();
+export default new AIService();

@@ -1,4 +1,4 @@
-const noteService = require('../services/noteService');
+import noteService from '../services/noteService.js';
 
 class NoteController {
   async createNote(req, res) {
@@ -328,4 +328,4 @@ class NoteController {
   }
 }
 
-module.exports = new NoteController();
+export default new NoteController();

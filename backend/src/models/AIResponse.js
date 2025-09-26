@@ -1,4 +1,4 @@
-const IntentEnum = require('../enums/IntentEnum');
+import IntentEnum from '../enums/IntentEnum.js';
 
 /**
  * Base AI Response class
@@ -64,7 +64,7 @@ class AIResponseFactory {
   }
 }
 
-module.exports = {
+export {
   AIResponse,
   TaskListResponse,
   DateLookupResponse,

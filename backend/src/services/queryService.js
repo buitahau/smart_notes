@@ -1,7 +1,7 @@
-const aiService = require('./aiService');
-const noteService = require('./noteService');
-const IntentEnum = require('../enums/IntentEnum');
-const { AIResponseFactory } = require('../models/AIResponse');
+import aiService from './aiService.js';
+import noteService from './noteService.js';
+import IntentEnum from '../enums/IntentEnum.js';
+import { AIResponseFactory } from '../models/AIResponse.js';
 
 class QueryService {
   async query(userId, query) {
@@ -61,4 +61,4 @@ class QueryService {
   }
 }
 
-module.exports = new QueryService();
+export default new QueryService();

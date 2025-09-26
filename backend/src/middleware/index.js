@@ -1,4 +1,4 @@
-const supabase = require('../config/supabase');
+import supabase from '../config/supabase.js';
 
 const authenticateToken = async (req, res, next) => {
   try {
@@ -34,6 +34,4 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  authenticateToken,
-};
+export { authenticateToken };

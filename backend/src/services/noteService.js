@@ -1,38 +1,27 @@
-const supabase = require('../config/supabase');
-const Note = require('../models/Note');
-const aiService = require('./aiService');
+import crypto from 'crypto';
+import { noteRepository } from '../database/noteRepository.js';
+import aiService from './aiService.js';
 
 class NoteService {
-  async createNote(userId, content, dateAt = null) {
+  async createNote(userId, content, dateAt) {
     try {
       const noteData = {
-        user_id: userId,
+        id: crypto.randomUUID(),
+        userId: userId,
         content: content,
-        created_at: new Date().toISOString(),
+        dateAt: dateAt,
       };
 
-      // Add date_at if provided
-      if (dateAt) {
-        noteData.date_at = new Date(dateAt).toISOString();
-      }
+      const note = await noteRepository.create(noteData);
 
-      const { data, error } = await supabase
-        .from('notes')
-        .insert([noteData])
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      await aiService.insertNote(data.id, content, userId, dateAt);
+      await aiService.insertNote(note.id, content, userId, dateAt);
 
       return {
         success: true,
-        note: Note.fromSupabaseRow(data),
+        note: note,
       };
     } catch (error) {
+      console.error(error);
       return {
         success: false,
         error: error.message,
@@ -42,22 +31,15 @@ class NoteService {
 
   async getNotesByUserId(userId, limit = 50, offset = 0) {
     try {
-      const { data, error } = await supabase
-        .from('notes')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+      const notes = await noteRepository.getByUserId(userId);
 
-      if (error) {
-        throw error;
-      }
-
-      const notes = data.map(row => Note.fromSupabaseRow(row));
+      // Apply pagination and sorting
+      const sortedNotes = notes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const paginatedNotes = sortedNotes.slice(offset, offset + limit);
 
       return {
         success: true,
-        notes: notes,
+        notes: paginatedNotes,
       };
     } catch (error) {
       return {
@@ -69,20 +51,19 @@ class NoteService {
 
   async getNoteById(noteId, userId) {
     try {
-      const { data, error } = await supabase
-        .from('notes')
-        .select('*')
-        .eq('id', noteId)
-        .eq('user_id', userId)
-        .single();
+      const note = await noteRepository.getById(noteId);
 
-      if (error) {
-        throw error;
+      // Verify the note belongs to the user
+      if (!note || note.userId !== userId) {
+        return {
+          success: false,
+          error: 'Note not found or access denied',
+        };
       }
 
       return {
         success: true,
-        note: Note.fromSupabaseRow(data),
+        note: note,
       };
     } catch (error) {
       return {
@@ -94,28 +75,25 @@ class NoteService {
 
   async updateNote(noteId, userId, content, dateAt = null) {
     try {
+      // First verify the note exists and belongs to the user
+      const existingNote = await noteRepository.getById(noteId);
+      if (!existingNote || existingNote.userId !== userId) {
+        return {
+          success: false,
+          error: 'Note not found or access denied',
+        };
+      }
+
       const updateData = { content: content };
-
-      // Add date_at to update if provided
       if (dateAt !== null) {
-        updateData.date_at = new Date(dateAt).toISOString();
+        updateData.dateAt = dateAt;
       }
 
-      const { data, error } = await supabase
-        .from('notes')
-        .update(updateData)
-        .eq('id', noteId)
-        .eq('user_id', userId)
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
+      const updatedNote = await noteRepository.update(noteId, updateData);
 
       return {
         success: true,
-        note: Note.fromSupabaseRow(data),
+        note: updatedNote,
       };
     } catch (error) {
       return {
@@ -127,15 +105,16 @@ class NoteService {
 
   async deleteNote(noteId, userId) {
     try {
-      const { error } = await supabase
-        .from('notes')
-        .delete()
-        .eq('id', noteId)
-        .eq('user_id', userId);
-
-      if (error) {
-        throw error;
+      // First verify the note exists and belongs to the user
+      const existingNote = await noteRepository.getById(noteId);
+      if (!existingNote || existingNote.userId !== userId) {
+        return {
+          success: false,
+          error: 'Note not found or access denied',
+        };
       }
+
+      await noteRepository.delete(noteId);
 
       return {
         success: true,
@@ -157,21 +136,14 @@ class NoteService {
         };
       }
 
-      const { data, error } = await supabase
-        .from('notes')
-        .select('*')
-        .in('id', noteIds)
-        .eq('user_id', userId);
+      const notes = await noteRepository.getByIds(noteIds);
 
-      if (error) {
-        throw error;
-      }
-
-      const notes = data.map(row => Note.fromSupabaseRow(row));
+      // Filter to only include notes that belong to the user
+      const userNotes = notes.filter(note => note.userId === userId);
 
       return {
         success: true,
-        notes: notes,
+        notes: userNotes,
       };
     } catch (error) {
       console.error('Error fetching notes by IDs:', error);
@@ -183,4 +155,4 @@ class NoteService {
   }
 }
 
-module.exports = new NoteService();
+export default new NoteService();

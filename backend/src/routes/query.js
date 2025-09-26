@@ -1,6 +1,6 @@
-const express = require('express');
-const queryController = require('../controllers/queryController');
-const { authenticateToken } = require('../middleware');
+import express from 'express';
+import queryController from '../controllers/queryController.js';
+import { authenticateToken } from '../middleware/index.js';
 
 const router = express.Router();
 
@@ -9,4 +9,4 @@ router.use(authenticateToken);
 
 router.post('/', queryController.query);
 
-module.exports = router;
+export default router;

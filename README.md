@@ -16,9 +16,9 @@ Each folder contains its own README with specific setup instructions.
 ## Tech Stack
 
 - Frontend: React, WXT (Chrome Extension)
-- Backend: Cloudflare Workers
-- Database: Cloudflare D1 with Vector Extension
-- AI/ML: Cloudflare Workers AI
+- Backend: Express.js (Node.js)
+- Database: Neon (PostgreSQL) with Drizzle ORM
+- AI/ML: Cloudflare Workers AI / OpenAI
 
 ## Architect diagram
                    ┌──────────────────────────┐

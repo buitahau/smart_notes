@@ -1,4 +1,4 @@
-const queryService = require('../services/queryService');
+import queryService from '../services/queryService.js';
 
 class QueryController {
   async query(req, res) {
@@ -29,4 +29,4 @@ class QueryController {
   }
 }
 
-module.exports = new QueryController();
+export default new QueryController();

@@ -28,4 +28,4 @@ class Note {
   }
 }
 
-module.exports = Note;
+export default Note;

@@ -1,4 +1,4 @@
-const supabase = require('../config/supabase');
+import supabase from '../config/supabase.js';
 
 class AuthService {
   async signIn(email, password) {
@@ -91,4 +91,4 @@ class AuthService {
   }
 }
 
-module.exports = new AuthService();
+export default new AuthService();

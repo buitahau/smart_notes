@@ -39,6 +39,9 @@ temp/
 
 ./claude
 
+# AI worker configuration
+ai/wrangler.toml
+
 # backoffice
 backoffice/.node_modules/
 backoffice/.next/

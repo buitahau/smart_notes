@@ -15,4 +15,4 @@ class IntentEnum {
   }
 }
 
-module.exports = IntentEnum;
+export default IntentEnum;
