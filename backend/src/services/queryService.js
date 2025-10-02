@@ -28,11 +28,23 @@ class QueryService {
 
   async queryDateLookup(userId, query) {
     try {
-      // Get date from AI service
-      const dateInfo = await aiService.queryDateLookup(userId, query);
-      return AIResponseFactory.create(IntentEnum.DATE_LOOKUP, dateInfo);
+      // Get note IDs from AI service
+      console.log('QueryService.queryDateLookup: ' + userId + '/' + query);
+      const noteIds = await aiService.queryDateLookup(userId, query);
+
+      // Get notes by their IDs
+      const { success, notes, error } = await noteService.getNotesByIds(
+        noteIds,
+        userId
+      );
+
+      if (!success) {
+        return AIResponseFactory.createError(IntentEnum.DATE_LOOKUP, error || 'Failed to fetch notes');
+      }
+
+      return AIResponseFactory.create(IntentEnum.DATE_LOOKUP, notes || []);
     } catch (error) {
-      console.error('Error in date lookup:', error);
+      console.error('Error in date lookup query:', error);
       return AIResponseFactory.createError(IntentEnum.DATE_LOOKUP, error.message);
     }
   }

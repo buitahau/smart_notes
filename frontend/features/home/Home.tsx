@@ -77,7 +77,7 @@ export const Home: React.FC = () => {
       // Ensure notesData.data is always an array
       const notesArray = Array.isArray(notesData.data) ? notesData.data : [];
 
-      if (notesData.intent === 'task_list' && notesArray.length > 0) {
+      if ((notesData.intent === 'task_list' || notesData.intent === 'date_lookup') && notesArray.length > 0) {
         aiResponse = {
           id: `ai-${Date.now()}`,
           type: 'ai',
