@@ -1,24 +1,31 @@
 import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
+import { Hono } from 'hono';
+import { serve } from '@hono/node-server';
+import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
 import authRoutes from './routes/auth.js';
 import noteRoutes from './routes/notes.js';
 import queryRoutes from './routes/query.js';
+import indexRoutes from './routes/indexes.js';
 
-const app = express();
+const app = new Hono();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
+app.use('*', cors());
+app.use('*', logger());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/notes', noteRoutes);
-app.use('/api/query', queryRoutes);
+app.route('/api/auth', authRoutes);
+app.route('/api/notes', noteRoutes);
+app.route('/api/query', queryRoutes);
+app.route('/api/indexes', indexRoutes);
 
-app.get('/', (req, res) => {
-  res.json({ message: 'API is running' });
+app.get('/', c => {
+  return c.json({ message: 'API is running' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+console.log(`Server is running on port ${PORT}`);
+
+serve({
+  fetch: app.fetch,
+  port: PORT,
 });

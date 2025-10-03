@@ -2,7 +2,9 @@
 class QueryAdapter {
   constructor() {
     if (this.constructor === QueryAdapter) {
-      throw new Error("QueryAdapter is an abstract class and cannot be instantiated.");
+      throw new Error(
+        'QueryAdapter is an abstract class and cannot be instantiated.'
+      );
     }
   }
 
@@ -12,7 +14,7 @@ class QueryAdapter {
    * @returns {Promise<{intent: string}>} - The classified intent
    */
   async classifyQuery(query) {
-    throw new Error("classifyQuery method must be implemented by subclass");
+    throw new Error('classifyQuery method must be implemented by subclass');
   }
 
   /**
@@ -21,7 +23,9 @@ class QueryAdapter {
    * @returns {Promise<Object>} - Date filter object for MongoDB
    */
   async extractDatesFromQuery(query) {
-    throw new Error("extractDatesFromQuery method must be implemented by subclass");
+    throw new Error(
+      'extractDatesFromQuery method must be implemented by subclass'
+    );
   }
 }
 

@@ -7,7 +7,7 @@ import Note from '../models/Note.js';
 const sql = neon(process.env.DATABASE_URL);
 export const db = drizzle(sql);
 
-const mapRowToNote = (row) => {
+const mapRowToNote = row => {
   return new Note(
     row.id,
     row.userId,
@@ -20,12 +20,15 @@ const mapRowToNote = (row) => {
 export const noteRepository = {
   // Create a new note
   async create(noteData) {
-    const [newNote] = await db.insert(notes).values({
-      id: noteData.id,
-      userId: noteData.userId,
-      content: noteData.content,
-      dateAt: new Date(noteData.dateAt)
-    }).returning();
+    const [newNote] = await db
+      .insert(notes)
+      .values({
+        id: noteData.id,
+        userId: noteData.userId,
+        content: noteData.content,
+        dateAt: new Date(noteData.dateAt),
+      })
+      .returning();
 
     return mapRowToNote(newNote);
   },
@@ -46,15 +49,20 @@ export const noteRepository = {
 
   // Get notes by user ID
   async getByUserId(userId) {
-    const userNoteRows = await db.select().from(notes).where(eq(notes.userId, userId));
+    const userNoteRows = await db
+      .select()
+      .from(notes)
+      .where(eq(notes.userId, userId));
     return userNoteRows.map(mapRowToNote);
   },
 
   // Update a note
   async update(id, updateData) {
     const updateValues = {};
-    if (updateData.content !== undefined) updateValues.content = updateData.content;
-    if (updateData.dateAt !== undefined) updateValues.dateAt = updateData.dateAt;
+    if (updateData.content !== undefined)
+      updateValues.content = updateData.content;
+    if (updateData.dateAt !== undefined)
+      updateValues.dateAt = updateData.dateAt;
 
     const [updatedNote] = await db
       .update(notes)
@@ -88,7 +96,7 @@ export const noteRepository = {
       .from(notes)
       .where(inArray(notes.id, ids));
 
-    console.log(foundNoteRows)
+    console.log(foundNoteRows);
     return foundNoteRows.map(mapRowToNote);
-  }
+  },
 };

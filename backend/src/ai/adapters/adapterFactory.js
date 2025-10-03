@@ -42,7 +42,8 @@ class ConfigValidator {
  * Simple in-memory cache with TTL
  */
 class ResponseCache {
-  constructor(defaultTtl = 300000) { // 5 minutes default TTL
+  constructor(defaultTtl = 300000) {
+    // 5 minutes default TTL
     this.cache = new Map();
     this.defaultTtl = defaultTtl;
   }
@@ -82,7 +83,12 @@ class ResponseCache {
  * Retry utility with exponential backoff
  */
 class RetryHandler {
-  static async withRetry(fn, maxRetries = 3, baseDelay = 1000, backoffFactor = 2) {
+  static async withRetry(
+    fn,
+    maxRetries = 3,
+    baseDelay = 1000,
+    backoffFactor = 2
+  ) {
     let lastError;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -92,7 +98,9 @@ class RetryHandler {
         lastError = error;
 
         if (attempt === maxRetries) {
-          throw new Error(`Max retries (${maxRetries}) exceeded. Last error: ${error.message}`);
+          throw new Error(
+            `Max retries (${maxRetries}) exceeded. Last error: ${error.message}`
+          );
         }
 
         const delay = baseDelay * Math.pow(backoffFactor, attempt);
@@ -113,7 +121,7 @@ class Logger {
       timestamp: new Date().toISOString(),
       level,
       message,
-      ...context
+      ...context,
     };
 
     console.log(JSON.stringify(logEntry));
@@ -135,9 +143,7 @@ class Logger {
 // Environment configuration with validation
 const ENV = {
   QUERY_ADAPTER_PROVIDER: 'openrouter',
-  OPENROUTER_API_KEY: '',
-  OPENROUTER_BASE_URL: 'https://openrouter.ai/api/v1',
-  OPENROUTER_MODEL: 'deepseek/deepseek-chat-v3.1:free'
+  OPEN_ROUTER_API_KEY: process.env.OPEN_ROUTER_API_KEY || '',
 };
 
 // Global cache instance
@@ -211,7 +217,9 @@ class AdapterFactory {
   static createQueryAdapter(provider = 'openrouter', config = {}) {
     const validatedProvider = ConfigValidator.validateProvider(provider);
 
-    Logger.info(`Creating adapter for provider: ${validatedProvider}`, { config: { ...config, apiKey: config.apiKey ? '[REDACTED]' : undefined } });
+    Logger.info(`Creating adapter for provider: ${validatedProvider}`, {
+      config: { ...config, apiKey: config.apiKey ? '[REDACTED]' : undefined },
+    });
 
     switch (validatedProvider) {
       case 'openrouter':
@@ -222,21 +230,19 @@ class AdapterFactory {
           const AdapterClass = this.adapters.get(validatedProvider);
           return new AdapterClass(config);
         }
-        throw new Error(`Unsupported query adapter provider: ${validatedProvider}. Available: ${this.getAvailableProviders().join(', ')}`);
+        throw new Error(
+          `Unsupported query adapter provider: ${validatedProvider}. Available: ${this.getAvailableProviders().join(', ')}`
+        );
     }
   }
 
   /**
    * Create OpenRouter adapter with validation
-   * @param {Object} config - Configuration
    * @returns {OpenRouterQueryAdapter} - Validated adapter
    */
-  static createOpenRouterAdapter(config) {
-    const apiKey = ConfigValidator.validateApiKey(config.apiKey || ENV.OPENROUTER_API_KEY, 'openrouter');
-    const baseUrl = ConfigValidator.validateUrl(config.baseUrl || ENV.OPENROUTER_BASE_URL, 'openrouter');
-    const model = ConfigValidator.validateModel(config.model || ENV.OPENROUTER_MODEL, 'openrouter');
-
-    return new OpenRouterQueryAdapter(apiKey, baseUrl, model);
+  static createOpenRouterAdapter() {
+    // The adapter manages its own configuration and API key internally
+    return new OpenRouterQueryAdapter();
   }
 
   /**
@@ -245,17 +251,14 @@ class AdapterFactory {
    */
   static getQueryAdapter() {
     const defaultProvider = ENV.QUERY_ADAPTER_PROVIDER || 'openrouter';
-    Logger.info(`Getting default adapter: ${defaultProvider}`);
 
     switch (defaultProvider.toLowerCase()) {
       case 'openrouter':
-        return this.createOpenRouterAdapter({
-          apiKey: ENV.OPENROUTER_API_KEY,
-          baseUrl: ENV.OPENROUTER_BASE_URL,
-          model: ENV.OPENROUTER_MODEL
-        });
+        return this.createOpenRouterAdapter();
       default:
-        throw new Error(`Unsupported query adapter provider: ${defaultProvider}. Available: ${this.getAvailableProviders().join(', ')}`);
+        throw new Error(
+          `Unsupported query adapter provider: ${defaultProvider}. Available: ${this.getAvailableProviders().join(', ')}`
+        );
     }
   }
 
@@ -265,18 +268,17 @@ class AdapterFactory {
    * @returns {QueryAdapter} - Context-aware adapter
    */
   static getQueryAdapterFromContext(env) {
-    const defaultProvider = env?.QUERY_ADAPTER_PROVIDER || ENV.QUERY_ADAPTER_PROVIDER || 'openrouter';
+    const defaultProvider =
+      env?.QUERY_ADAPTER_PROVIDER || ENV.QUERY_ADAPTER_PROVIDER || 'openrouter';
     Logger.info(`Getting adapter from context: ${defaultProvider}`);
 
     switch (defaultProvider.toLowerCase()) {
       case 'openrouter':
-        return this.createOpenRouterAdapter({
-          apiKey: env?.OPENROUTER_API_KEY || ENV.OPENROUTER_API_KEY,
-          baseUrl: env?.OPENROUTER_BASE_URL || ENV.OPENROUTER_BASE_URL,
-          model: env?.OPENROUTER_MODEL || ENV.OPENROUTER_MODEL
-        });
+        return this.createOpenRouterAdapter();
       default:
-        throw new Error(`Unsupported query adapter provider: ${defaultProvider}. Available: ${this.getAvailableProviders().join(', ')}`);
+        throw new Error(
+          `Unsupported query adapter provider: ${defaultProvider}. Available: ${this.getAvailableProviders().join(', ')}`
+        );
     }
   }
 
@@ -288,7 +290,9 @@ class AdapterFactory {
    * @returns {Promise<any>} - Method result
    */
   static async executeWithCachingAndRetry(method, args, adapter) {
-    const cacheKey = this.cacheEnabled ? `${method}:${JSON.stringify(args)}` : null;
+    const cacheKey = this.cacheEnabled
+      ? `${method}:${JSON.stringify(args)}`
+      : null;
 
     if (cacheKey) {
       const cached = responseCache.get(cacheKey);
@@ -323,7 +327,7 @@ class AdapterFactory {
     Logger.info('AdapterFactory initialized', {
       availableProviders: this.getAvailableProviders(),
       cacheEnabled: this.cacheEnabled,
-      maxRetries: this.maxRetries
+      maxRetries: this.maxRetries,
     });
   }
 }

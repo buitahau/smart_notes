@@ -39,20 +39,25 @@ class QueryService {
       );
 
       if (!success) {
-        return AIResponseFactory.createError(IntentEnum.DATE_LOOKUP, error || 'Failed to fetch notes');
+        return AIResponseFactory.createError(
+          IntentEnum.DATE_LOOKUP,
+          error || 'Failed to fetch notes'
+        );
       }
 
       return AIResponseFactory.create(IntentEnum.DATE_LOOKUP, notes || []);
     } catch (error) {
       console.error('Error in date lookup query:', error);
-      return AIResponseFactory.createError(IntentEnum.DATE_LOOKUP, error.message);
+      return AIResponseFactory.createError(
+        IntentEnum.DATE_LOOKUP,
+        error.message
+      );
     }
   }
 
   async queryTaskList(userId, query) {
     try {
       // Get note IDs from AI service
-      console.log('QueryService.query: ' + userId + '/' + query);
       const noteIds = await aiService.queryTaskList(userId, query);
 
       // Get notes by their IDs
@@ -62,7 +67,10 @@ class QueryService {
       );
 
       if (!success) {
-        return AIResponseFactory.createError(IntentEnum.TASK_LIST, error || 'Failed to fetch notes');
+        return AIResponseFactory.createError(
+          IntentEnum.TASK_LIST,
+          error || 'Failed to fetch notes'
+        );
       }
 
       return AIResponseFactory.create(IntentEnum.TASK_LIST, notes || []);

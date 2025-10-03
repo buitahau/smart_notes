@@ -3,7 +3,7 @@ import { getVectorizeIndexUrl } from '../../utils/vectorize.js';
 import { apiClient } from '../fetch.js';
 import AdapterFactory from '../../adapters/adapterFactory.js';
 
-const extractKeywordAndTimeDirection = async (query) => {
+const extractKeywordAndTimeDirection = async query => {
   const queryAdapter = AdapterFactory.getQueryAdapter();
 
   const prompt = `
@@ -16,10 +16,10 @@ const extractKeywordAndTimeDirection = async (query) => {
     Return JSON: {"keyword": "market", "timeDirection": "past"}
 
     Examples:
-    - "when did I go to the market" ’ {"keyword": "market", "timeDirection": "past"}
-    - "when will I go to the market" ’ {"keyword": "market", "timeDirection": "future"}
-    - "when was my last appointment" ’ {"keyword": "appointment", "timeDirection": "past"}
-    - "when is my next meeting" ’ {"keyword": "meeting", "timeDirection": "future"}
+    - "when did I go to the market" ï¿½ {"keyword": "market", "timeDirection": "past"}
+    - "when will I go to the market" ï¿½ {"keyword": "market", "timeDirection": "future"}
+    - "when was my last appointment" ï¿½ {"keyword": "appointment", "timeDirection": "past"}
+    - "when is my next meeting" ï¿½ {"keyword": "meeting", "timeDirection": "future"}
   `;
 
   try {
@@ -32,7 +32,7 @@ const extractKeywordAndTimeDirection = async (query) => {
   }
 };
 
-const buildDateFilter = (timeDirection) => {
+const buildDateFilter = timeDirection => {
   const now = Date.now();
 
   if (timeDirection === 'past') {
@@ -52,7 +52,8 @@ export const queryDateLookup = async c => {
 
   try {
     // Step 1: Extract keyword and time direction
-    const { keyword, timeDirection } = await extractKeywordAndTimeDirection(query);
+    const { keyword, timeDirection } =
+      await extractKeywordAndTimeDirection(query);
     console.log('Extracted:', { keyword, timeDirection });
 
     // Step 2: Build date filter based on time direction
@@ -60,7 +61,9 @@ export const queryDateLookup = async c => {
     console.log('Date filter:', dateFilter);
 
     // Step 3: Embed keyword for vector search
-    const embeddingQuery = await c.env.AI.run(EMBEDDING_MODEL, { text: keyword });
+    const embeddingQuery = await c.env.AI.run(EMBEDDING_MODEL, {
+      text: keyword,
+    });
 
     // Step 4: Query vectorize with filter
     const data = await apiClient.post(c, `${getVectorizeIndexUrl(c)}/query`, {
@@ -78,7 +81,6 @@ export const queryDateLookup = async c => {
     console.log('Found note IDs:', noteIds);
 
     return c.json(noteIds);
-
   } catch (error) {
     console.error('Date lookup error:', error);
     return c.json({ error: 'Date lookup failed' }, 500);

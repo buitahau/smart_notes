@@ -1,11 +1,11 @@
-import express from 'express';
+import { Hono } from 'hono';
 import queryController from '../controllers/queryController.js';
 import { authenticateToken } from '../middleware/index.js';
 
-const router = express.Router();
+const router = new Hono();
 
 // All note routes require authentication
-router.use(authenticateToken);
+router.use('*', authenticateToken);
 
 router.post('/', queryController.query);
 

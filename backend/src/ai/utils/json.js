@@ -1,4 +1,4 @@
-export const cleanJson = (text) => {
+export const cleanJson = text => {
   // Remove markdown code fences
   text = text.replace(/```json|```/g, '');
   text = text.trim();
@@ -14,4 +14,4 @@ export const cleanJson = (text) => {
   }
 
   return JSON.parse(text);
-}
+};

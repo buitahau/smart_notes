@@ -34,7 +34,9 @@ class NoteService {
       const notes = await noteRepository.getByUserId(userId);
 
       // Apply pagination and sorting
-      const sortedNotes = notes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const sortedNotes = notes.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
       const paginatedNotes = sortedNotes.slice(offset, offset + limit);
 
       return {

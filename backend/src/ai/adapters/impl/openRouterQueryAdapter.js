@@ -1,17 +1,19 @@
 import QueryAdapter from '../queryAdapter.js';
 import { cleanJson } from '../../utils/json.js';
 import { convertDateToTimestamp } from '../../utils/date.js';
+import { PROVIDERS } from '../../constants/provider.js';
 
 /**
  * Enhanced OpenRouter Query Adapter with error handling and logging
  */
 class OpenRouterQueryAdapter extends QueryAdapter {
-  constructor(apiKey, baseUrl = 'https://openrouter.ai/api/v1', model = 'deepseek/deepseek-chat-v3.1:free') {
+  constructor() {
     super();
-    this.apiKey = apiKey;
-    this.baseUrl = baseUrl;
-    this.model = model;
-    this.requestTimeout = 30000; // 30 seconds
+    // The adapter handles its own API key from environment variables
+    this.apiKey = process.env[PROVIDERS.OPEN_ROUTER.API_KEY_ENV_VAR] || '';
+    this.baseUrl = PROVIDERS.OPEN_ROUTER.BASE_URL;
+    this.model = PROVIDERS.OPEN_ROUTER.MODEL;
+    this.requestTimeout = PROVIDERS.OPEN_ROUTER.REQUEST_TIMEOUT;
   }
 
   /**
@@ -27,7 +29,7 @@ class OpenRouterQueryAdapter extends QueryAdapter {
       message,
       adapter: 'OpenRouterQueryAdapter',
       model: this.model,
-      ...context
+      ...context,
     };
 
     console.log(JSON.stringify(logEntry));
@@ -44,11 +46,9 @@ class OpenRouterQueryAdapter extends QueryAdapter {
     const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
 
     try {
-      this.log('INFO', 'Making API call', { url, method: options.method });
-
       const response = await fetch(url, {
         ...options,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -58,18 +58,15 @@ class OpenRouterQueryAdapter extends QueryAdapter {
         this.log('ERROR', 'API call failed', {
           status: response.status,
           statusText: response.statusText,
-          errorText: errorText.substring(0, 200)
+          errorText: errorText.substring(0, 200),
         });
 
-        throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}. Details: ${errorText.substring(0, 100)}`);
+        throw new Error(
+          `OpenRouter API error: ${response.status} ${response.statusText}. Details: ${errorText.substring(0, 100)}`
+        );
       }
 
       const data = await response.json();
-      this.log('INFO', 'API call successful', {
-        responseSize: JSON.stringify(data).length,
-        hasChoices: !!data.choices,
-        choiceCount: data.choices?.length || 0
-      });
 
       return data;
     } catch (error) {
@@ -93,18 +90,16 @@ class OpenRouterQueryAdapter extends QueryAdapter {
     const requestBody = {
       model: options.model || this.model,
       messages,
-      ...options
+      ...options,
     };
 
     return this.makeApiCall(`${this.baseUrl}/chat/completions`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Authorization": `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://smart-notes.example.com",
-        "X-Title": "Smart Notes AI"
+        Authorization: `Bearer ${this.apiKey}`,
+        ...PROVIDERS.OPEN_ROUTER.DEFAULT_HEADERS,
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
   }
 
@@ -119,36 +114,37 @@ class OpenRouterQueryAdapter extends QueryAdapter {
       throw new Error('Prompt must be a non-empty string');
     }
 
-    this.log('INFO', 'Generating response', {
-      promptLength: prompt.length,
-      options: { ...options, apiKey: options.apiKey ? '[REDACTED]' : undefined }
-    });
-
     const messages = [{ role: 'user', content: prompt.trim() }];
     const response = await this.chatCompletions(messages, options);
 
-    if (!response.choices || !Array.isArray(response.choices) || response.choices.length === 0) {
+    if (
+      !response.choices ||
+      !Array.isArray(response.choices) ||
+      response.choices.length === 0
+    ) {
       this.log('ERROR', 'Invalid response format - no choices', { response });
-      throw new Error('Invalid response format from OpenRouter API: no choices returned');
+      throw new Error(
+        'Invalid response format from OpenRouter API: no choices returned'
+      );
     }
 
     if (!response.choices[0].message || !response.choices[0].message.content) {
-      this.log('ERROR', 'Invalid response format - no message content', { choice: response.choices[0] });
-      throw new Error('Invalid response format from OpenRouter API: no message content');
+      this.log('ERROR', 'Invalid response format - no message content', {
+        choice: response.choices[0],
+      });
+      throw new Error(
+        'Invalid response format from OpenRouter API: no message content'
+      );
     }
 
     const raw = response.choices[0].message.content;
-    this.log('INFO', 'Raw response received', {
-      responseLength: raw.length,
-      preview: raw.substring(0, 100)
-    });
 
     try {
       return cleanJson(raw);
     } catch (error) {
       this.log('WARN', 'Failed to parse JSON response, returning raw content', {
         error: error.message,
-        rawLength: raw.length
+        rawLength: raw.length,
       });
       return raw;
     }
@@ -164,7 +160,10 @@ class OpenRouterQueryAdapter extends QueryAdapter {
       throw new Error('Query must be a non-empty string');
     }
 
-    this.log('INFO', 'Classifying query', { queryLength: query.length, query: query.substring(0, 50) });
+    this.log('INFO', 'Classifying query', {
+      queryLength: query.length,
+      query: query.substring(0, 50),
+    });
 
     const prompt = `
     Given a natural language query, classify the user query into one of :
@@ -188,14 +187,18 @@ class OpenRouterQueryAdapter extends QueryAdapter {
 
       const validIntents = ['task_list', 'date_lookup'];
       if (!validIntents.includes(result.intent)) {
-        this.log('WARN', 'Unknown intent returned, defaulting to task_list', { intent: result.intent });
+        this.log('WARN', 'Unknown intent returned, defaulting to task_list', {
+          intent: result.intent,
+        });
         return { intent: 'task_list' };
       }
 
-      this.log('INFO', 'Query classified successfully', { intent: result.intent });
       return { intent: result.intent };
     } catch (error) {
-      this.log('ERROR', 'Query classification failed', { error: error.message, query: query.substring(0, 50) });
+      this.log('ERROR', 'Query classification failed', {
+        error: error.message,
+        query: query.substring(0, 50),
+      });
       // Fallback to task_list for errors
       return { intent: 'task_list' };
     }
@@ -212,12 +215,7 @@ class OpenRouterQueryAdapter extends QueryAdapter {
       return { $exists: true };
     }
 
-    const today = new Date().toISOString().split("T")[0];
-    this.log('INFO', 'Extracting dates from query', {
-      queryLength: query.length,
-      query: query.substring(0, 50),
-      today
-    });
+    const today = new Date().toISOString().split('T')[0];
 
     const prompt = `
     You are a date parser. Today is ${today}
@@ -280,15 +278,25 @@ class OpenRouterQueryAdapter extends QueryAdapter {
           $gte: convertDateToTimestamp(fromDate),
           $lte: convertDateToTimestamp(endDate),
         };
-        this.log('INFO', 'Date range extracted', { fromDate, endDate, filter: dateFilter });
+        this.log('INFO', 'Date range extracted', {
+          fromDate,
+          endDate,
+          filter: dateFilter,
+        });
       } else {
         dateFilter = { $eq: convertDateToTimestamp(fromDate) };
-        this.log('INFO', 'Single date extracted', { fromDate, filter: dateFilter });
+        this.log('INFO', 'Single date extracted', {
+          fromDate,
+          filter: dateFilter,
+        });
       }
 
       return dateFilter;
     } catch (error) {
-      this.log('ERROR', 'Date extraction failed', { error: error.message, query: query.substring(0, 50) });
+      this.log('ERROR', 'Date extraction failed', {
+        error: error.message,
+        query: query.substring(0, 50),
+      });
       return { $exists: true };
     }
   }
@@ -331,7 +339,10 @@ class OpenRouterQueryAdapter extends QueryAdapter {
 
     const oldTimeout = this.requestTimeout;
     this.requestTimeout = timeout;
-    this.log('INFO', 'Request timeout updated', { oldTimeout, newTimeout: timeout });
+    this.log('INFO', 'Request timeout updated', {
+      oldTimeout,
+      newTimeout: timeout,
+    });
   }
 
   /**
@@ -344,7 +355,7 @@ class OpenRouterQueryAdapter extends QueryAdapter {
       baseUrl: this.baseUrl,
       requestTimeout: this.requestTimeout,
       hasApiKey: !!this.apiKey,
-      apiKeyLength: this.apiKey ? this.apiKey.length : 0
+      apiKeyLength: this.apiKey ? this.apiKey.length : 0,
     };
   }
 
@@ -354,7 +365,7 @@ class OpenRouterQueryAdapter extends QueryAdapter {
    */
   async healthCheck() {
     try {
-      const testPrompt = "Respond with a simple JSON object: {\"status\": \"ok\"}";
+      const testPrompt = 'Respond with a simple JSON object: {"status": "ok"}';
       const result = await this.generateResponse(testPrompt);
       const isHealthy = result && result.status === 'ok';
 
