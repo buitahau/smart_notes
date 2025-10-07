@@ -21,19 +21,39 @@ export const Home: React.FC = () => {
   const { navigate } = useMiniRouter();
   const { messages, setMessages } = useChat();
 
-  // Initialize welcome message if no messages exist
+  // Load messages from storage on initial render
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        {
-          id: '1',
-          type: 'ai',
-          content: "Hello! 👋 I'm your AI assistant. I can help you with:\n\n• Finding your notes for today\n• Creating new notes\n• Organizing your thoughts\n\nWhat would you like to do?",
-          timestamp: new Date(),
-        },
-      ]);
+    const loadMessages = async () => {
+      const savedMessages = await storage.get<Message[]>(STORAGE_KEYS.CHAT_MESSAGES);
+      if (savedMessages && savedMessages.length > 0) {
+        // Need to convert timestamp strings back to Date objects
+        const messagesWithDates = savedMessages.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+        setMessages(messagesWithDates);
+      } else {
+        // Initialize welcome message if no messages exist
+        setMessages([
+          {
+            id: '1',
+            type: 'ai',
+            content: "Hello! 👋 I'm your AI assistant. I can help you with:\n\n• Finding your notes for today\n• Creating new notes\n• Organizing your thoughts\n\nWhat would you like to do?",
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    };
+    loadMessages();
+  }, [setMessages]);
+
+  // Save messages to storage when they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastFiveMessages = messages.slice(-5);
+      storage.set(STORAGE_KEYS.CHAT_MESSAGES, lastFiveMessages);
     }
-  }, [messages.length, setMessages]);
+  }, [messages]);
 
   const handleCreateNote = () => {
     navigate('create-note');

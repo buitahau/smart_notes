@@ -4,6 +4,7 @@
 export const STORAGE_KEYS = {
   USER: 'smart_note_user',
   TOKEN: 'smart_note_token',
+  CHAT_MESSAGES: 'smart_note_chat_messages',
 } as const;
 
 /**

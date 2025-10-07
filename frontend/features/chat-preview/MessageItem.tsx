@@ -14,7 +14,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, isPreview = f
   const previewStyles = isPreview ? {
     messageWrapper: {
       ...styles.messageWrapper,
-      padding: '8px 12px',
       marginBottom: '8px',
       backgroundColor: isAI ? '#f8fafc' : '#f3f4f6',
       borderRadius: '8px',

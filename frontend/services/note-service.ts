@@ -8,6 +8,7 @@ export interface Note {
   createdAt: string;
   updatedAt: string;
   userId: string;
+  status?: 'pending' | 'completed';
 }
 
 export interface CreateNoteRequest {

@@ -58,7 +58,8 @@ class QueryService {
   async queryTaskList(userId, query) {
     try {
       // Get note IDs from AI service
-      const noteIds = await aiService.queryTaskList(userId, query);
+      // const noteIds = await aiService.queryTaskList(userId, query);
+      const noteIds = ['bba68b02-c404-4b73-a776-1a40abb5a545'];
 
       // Get notes by their IDs
       const { success, notes, error } = await noteService.getNotesByIds(
