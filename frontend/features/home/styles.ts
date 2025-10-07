@@ -3,7 +3,6 @@ export const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
-    maxHeight: '600px',
     width: '100%',
     maxWidth: '400px',
     backgroundColor: '#ffffff',
@@ -244,6 +243,7 @@ export const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #f0f0f0',
     minWidth: '160px',
     overflow: 'hidden',
+    zIndex: 50,
   },
   menuItem: {
     display: 'flex',

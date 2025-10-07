@@ -31,7 +31,7 @@
   font-size: 1.25rem;
   font-weight: 700;
   color: #111827;
-  margin: 0.5rem 0;
+  margin: 0;
 }
 
 .login-subtitle {
@@ -267,7 +267,7 @@
 .login-divider {
   display: flex;
   align-items: center;
-  margin: 1.5rem 0;
+  margin: 0;
 }
 
 .login-divider-line {

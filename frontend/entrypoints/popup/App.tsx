@@ -2,6 +2,7 @@ import './style.css';
 import { Login } from '@pages/login';
 import { Signup } from '@pages/signup';
 import { Home } from '@pages/home';
+import { Loading } from '@pages/loading';
 
 import { RouterProvider, useMiniRouter } from '@context/router-context';
 import { RequiredAuth } from '@guard/require-auth';
@@ -14,6 +15,12 @@ const AppContent: React.FC = () => {
 
   const renderView = () => {
     switch (route) {
+      case 'loading':
+        return (
+          <RequiredAuth>
+            <Loading />
+          </RequiredAuth>
+        );
       case 'signup':
         return <Signup />;
       case 'home':
@@ -39,7 +46,7 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <RouterProvider initial="login">
+    <RouterProvider initial="loading">
       <ChatProvider>
         <div className="app-container">
           <div className="app-content">

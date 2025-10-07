@@ -23,13 +23,13 @@ body {
 
 .app-container {
   background-color: #f9fafb;
-  min-height: 100vh;
+  min-height: 600px;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   box-sizing: border-box;
-  height: 100vh;
+  height: 600px;
 }
 
 .app-content {

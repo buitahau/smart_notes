@@ -22,25 +22,12 @@ export function Login() {
   const { formData, errors, isLoading, updateField, handleSubmit } = useLoginForm();
   const [notification, setNotification] = useState<NotificationMessageProps | null>(null);
 
-  // Check if user is already authenticated
+  // Handle notification params
   useEffect(() => {
-    const checkAuthToken = async () => {
-      const token = await storage.get(STORAGE_KEYS.TOKEN);
-      if (!token) return;
-
-      const response = await validateToken();
-
-      if (response.error) {
-        await storage.clear();
-      } else {
-        navigate('home');
-      }
-    };
     if (params?.notification) {
       showNotification(params.notification);
     }
-    checkAuthToken();
-  }, [navigate, params]);
+  }, [params]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
