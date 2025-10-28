@@ -1,4 +1,4 @@
-import { INDEX_NAME } from '../constants/config.js';
+import { INDEX_NAME, DIMENSIONS } from '../constants/config.js';
 import {
   getVectorizeIndexUrl,
   getVectorizeBaseUrl,
@@ -9,7 +9,7 @@ export const createIndex = async c => {
   const result = await apiClient.post(c, getVectorizeBaseUrl(c), {
     name: INDEX_NAME,
     config: {
-      dimensions: 768,
+      dimensions: DIMENSIONS,
       metric: 'cosine',
     },
   });

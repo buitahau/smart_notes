@@ -1,7 +1,7 @@
-import { EMBEDDING_MODEL } from '../constants/config.js';
 import { getVectorizeIndexUrl } from '../utils/vectorize.js';
 import { convertDateToTimestamp } from '../utils/date.js';
 import { apiClient } from './fetch.js';
+import { createEmbedding } from '../utils/createEmbedding.js';
 
 export const insertNote = async c => {
   const { noteId, content, userId, dateAt } = await c.req.json();
@@ -17,14 +17,12 @@ export const insertNote = async c => {
 
   // Create embedding from content + dateAt
   const embeddingInput = `${content}`;
-  const embedding = await c.env.AI.run(EMBEDDING_MODEL, {
-    text: embeddingInput,
-  });
+  const embedding = await createEmbedding(c, embeddingInput);
 
   // Insert vector with noteId + userId metadata
   const vector = {
     id: noteId,
-    values: embedding.data[0],
+    values: embedding,
     metadata: { noteId, userId, dateAt: dateAtTimestmp },
   };
   const result = await apiClient.postNdjson(

@@ -86,12 +86,49 @@ class NoteService {
         };
       }
 
-      const updateData = { content: content };
+      const updateData = {};
+      // Only send fields that truly changed to the repository update
+      if (typeof content === 'string' && content !== existingNote.content) {
+        updateData.content = content;
+      }
+
       if (dateAt !== null) {
-        updateData.dateAt = dateAt;
+        const incomingDate =
+          dateAt instanceof Date ? dateAt : new Date(dateAt);
+        const existingDate = existingNote.dateAt;
+        const existingTime =
+          existingDate instanceof Date && !isNaN(existingDate.getTime())
+            ? existingDate.getTime()
+            : null;
+        const incomingTime =
+          incomingDate instanceof Date && !isNaN(incomingDate.getTime())
+            ? incomingDate.getTime()
+            : null;
+
+        if (incomingTime !== null && incomingTime !== existingTime) {
+          updateData.dateAt = incomingDate;
+        }
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return {
+          success: true,
+          note: existingNote,
+        };
       }
 
       const updatedNote = await noteRepository.update(noteId, updateData);
+      if (!updatedNote) {
+        return {
+          success: false,
+          error: 'Failed to update note',
+        };
+      }
+      await aiService.updateNote(updatedNote.id, {
+        userId: updatedNote.userId,
+        content: updatedNote.content,
+        dateAt: updatedNote.dateAt,
+      });
 
       return {
         success: true,

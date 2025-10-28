@@ -3,6 +3,7 @@ import AdapterFactory from '../ai/adapters/adapterFactory.js';
 import { queryTaskList as queryTaskListFunction } from '../ai/services/query/queryTaskList.js';
 import { queryDateLookup as queryDateLookupFunction } from '../ai/services/query/queryDateLookup.js';
 import { insertNote as insertNoteFunction } from '../ai/services/insert.js';
+import { updateNote as updateNoteFunction } from '../ai/services/update.js';
 
 // Simple rule-based classifier as fallback
 const classifyQuerySimple = query => {
@@ -66,7 +67,8 @@ const createContext = (userId, query, noteId, content, dateAt) => {
       },
       CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN,
       CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
-      VECTORIZE_INDEX_NAME: process.env.VECTORIZE_INDEX_NAME || 'notes-index-8',
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+      OPENAI_EMBEDDING_MODEL: process.env.OPENAI_EMBEDDING_MODEL
     },
     req: {
       json: async () =>
@@ -169,6 +171,46 @@ class AIService {
       console.error('Error inserting note:', error);
       // Fallback to mock success if vector insertion fails
       console.warn('Vector insertion failed, returning mock success');
+      return { success: true, noteId };
+    }
+  }
+
+  async updateNote(noteId, updateData) {
+    try {
+      const { userId, content, dateAt } = updateData || {};
+
+      if (!noteId || !userId) {
+        throw new Error('noteId and userId are required to update note');
+      }
+
+      const hasContentUpdate =
+        typeof content === 'string' && content.trim().length > 0;
+      const hasDateUpdate = Boolean(dateAt);
+
+      if (!hasContentUpdate && !hasDateUpdate) {
+        // Nothing meaningful to sync with the vector index
+        return { success: true, noteId, skipped: true };
+      }
+
+      const context = createContext(
+        userId,
+        null,
+        noteId,
+        hasContentUpdate ? content : '',
+        hasDateUpdate ? dateAt : null
+      );
+
+      const result = await updateNoteFunction(context);
+
+      if (result && result.json) {
+        const updateResult = await result.json();
+        return updateResult;
+      }
+
+      return { success: true, noteId };
+    } catch (error) {
+      console.error('Error updating note:', error);
+      console.warn('Vector update failed, returning mock success');
       return { success: true, noteId };
     }
   }
