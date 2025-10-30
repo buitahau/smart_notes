@@ -4,6 +4,7 @@ import { queryTaskList as queryTaskListFunction } from '../ai/services/query/que
 import { queryDateLookup as queryDateLookupFunction } from '../ai/services/query/queryDateLookup.js';
 import { insertNote as insertNoteFunction } from '../ai/services/insert.js';
 import { updateNote as updateNoteFunction } from '../ai/services/update.js';
+import { deleteNote as deleteNoteFunction } from '../ai/services/delete.js';
 
 // Simple rule-based classifier as fallback
 const classifyQuerySimple = query => {
@@ -68,7 +69,7 @@ const createContext = (userId, query, noteId, content, dateAt) => {
       CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN,
       CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-      OPENAI_EMBEDDING_MODEL: process.env.OPENAI_EMBEDDING_MODEL
+      OPENAI_EMBEDDING_MODEL: process.env.OPENAI_EMBEDDING_MODEL,
     },
     req: {
       json: async () =>
@@ -211,6 +212,28 @@ class AIService {
     } catch (error) {
       console.error('Error updating note:', error);
       console.warn('Vector update failed, returning mock success');
+      return { success: true, noteId };
+    }
+  }
+
+  async deleteNote(noteId) {
+    try {
+      if (!noteId) {
+        throw new Error('noteId is required to delete note');
+      }
+
+      const context = createContext(null, null, noteId);
+      const result = await deleteNoteFunction(context);
+
+      if (result && result.json) {
+        const deleteResult = await result.json();
+        return deleteResult;
+      }
+
+      return { success: true, noteId };
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      console.warn('Vector delete failed, returning mock success');
       return { success: true, noteId };
     }
   }

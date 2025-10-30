@@ -19,7 +19,6 @@ const createContext = (reqBody = {}) => {
 };
 
 class IndexService {
-
   validateAndExtractResult(result, operation) {
     if (!result) {
       throw new Error(`Failed to ${operation}`);

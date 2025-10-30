@@ -10,6 +10,9 @@
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
+    "build:extension": "npm run build && npm run zip",
+    "build:extension:firefox": "npm run build:firefox && npm run zip:firefox",
+    "build:extension:all": "npm run build:extension && npm run build:extension:firefox",
     "compile": "tsc --noEmit",
     "postinstall": "wxt prepare",
     "format": "prettier --write \"./**/*.{js,jsx,ts,tsx,css,scss,json,md}\""

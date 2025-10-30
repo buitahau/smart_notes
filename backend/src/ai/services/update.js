@@ -18,16 +18,11 @@ export const updateNote = async c => {
     metadata: {
       noteId,
       userId,
+      dateAt: convertDateToTimestamp(dateAt),
     },
   };
 
-  if (dateAt) {
-    payload.metadata.dateAt = convertDateToTimestamp(dateAt);
-  }
-
-  if (content) {
-    payload.values = await createEmbedding(c, content);
-  }
+  payload.values = await createEmbedding(c, content);
 
   // Use upsert so the vector is created when missing and updated otherwise
   const result = await apiClient.postNdjson(

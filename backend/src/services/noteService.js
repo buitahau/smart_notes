@@ -93,8 +93,7 @@ class NoteService {
       }
 
       if (dateAt !== null) {
-        const incomingDate =
-          dateAt instanceof Date ? dateAt : new Date(dateAt);
+        const incomingDate = dateAt instanceof Date ? dateAt : new Date(dateAt);
         const existingDate = existingNote.dateAt;
         const existingTime =
           existingDate instanceof Date && !isNaN(existingDate.getTime())
@@ -154,6 +153,7 @@ class NoteService {
       }
 
       await noteRepository.delete(noteId);
+      await aiService.deleteNote(noteId);
 
       return {
         success: true,
