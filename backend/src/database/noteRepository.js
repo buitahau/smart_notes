@@ -96,7 +96,6 @@ export const noteRepository = {
       .from(notes)
       .where(inArray(notes.id, ids));
 
-    console.log(foundNoteRows);
     return foundNoteRows.map(mapRowToNote);
   },
 };

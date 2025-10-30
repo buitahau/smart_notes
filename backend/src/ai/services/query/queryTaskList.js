@@ -1,7 +1,7 @@
-import { EMBEDDING_MODEL } from '../../constants/config.js';
 import { getVectorizeIndexUrl } from '../../utils/vectorize.js';
 import { apiClient } from '../fetch.js';
 import AdapterFactory from '../../adapters/adapterFactory.js';
+import { createEmbedding } from '../../utils/createEmbedding.js';
 
 const extractDatesFromQuery = async (c, query) => {
   const queryAdapter = AdapterFactory.getQueryAdapter();
@@ -10,7 +10,6 @@ const extractDatesFromQuery = async (c, query) => {
 
 export const queryTaskList = async c => {
   const { userId, query } = await c.req.json();
-  console.log('query/task_list: ' + userId + '/' + query);
   if (!userId) {
     return c.json({ error: 'Missing userId' }, 400);
   }
@@ -19,13 +18,13 @@ export const queryTaskList = async c => {
   const dateFilter = await extractDatesFromQuery(c, query);
   console.log('Extracted date filter:', dateFilter);
 
-  const embeddingQuery = await c.env.AI.run(EMBEDDING_MODEL, { text: query });
+  const embeddingVector = await createEmbedding(c, query);
 
   const data = await apiClient.post(c, `${getVectorizeIndexUrl(c)}/query`, {
-    vector: embeddingQuery.data[0],
+    vector: embeddingVector,
     topK: 10,
     returnMetadata: 'all',
-    returnValues: true,
+    returnValues: false,
     filter: {
       userId,
       dateAt: dateFilter,
@@ -33,6 +32,6 @@ export const queryTaskList = async c => {
   });
 
   const noteIds = (data.result?.matches || []).map(m => m.metadata.noteId);
-
-  return c.json(noteIds);
+  console.log(noteIds)
+  return noteIds;
 };

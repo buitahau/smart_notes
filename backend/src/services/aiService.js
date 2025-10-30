@@ -111,15 +111,7 @@ class AIService {
       const context = createContext(userId, query);
 
       // Call the actual queryTaskList function from queryTaskList.js
-      const result = await queryTaskListFunction(context);
-
-      // Extract note IDs from the result
-      if (result && result.json) {
-        const noteIds = await result.json();
-        return noteIds;
-      }
-
-      return [];
+      return await queryTaskListFunction(context);
     } catch (error) {
       console.error('Error in queryTaskList:', error);
       // Fallback to empty array if vector search fails

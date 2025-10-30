@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User as UserIcon, Bot as BotIcon, Check, Edit2, Trash2, Plus, Save, X, MoreVertical } from 'lucide-react';
-import { Note } from '@services/note-service';
+import { Note, noteService } from '@services/note-service';
 import { Clock as ClockIcon } from 'lucide-react';
 import { getHeaderTitle, getEmptyState } from '@utils';
+import { useChat } from '@context/chat-context';
 
 interface MessageProps {
   message: {
@@ -16,7 +17,13 @@ interface MessageProps {
   styles: { [key: string]: React.CSSProperties };
 }
 
-const NoteCard: React.FC<{ note: Note; index: number; styles: { [key: string]: React.CSSProperties } }> = ({ note, index, styles }) => {
+const NoteCard: React.FC<{
+  note: Note;
+  index: number;
+  styles: { [key: string]: React.CSSProperties };
+  onNoteUpdate: (updatedNote: Note) => void;
+  onNoteDelete: (noteId: string) => void;
+}> = ({ note, index, styles, onNoteUpdate, onNoteDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(note.content);
   const [isCompleted, setIsCompleted] = useState(note.status === 'completed');
@@ -35,6 +42,10 @@ const NoteCard: React.FC<{ note: Note; index: number; styles: { [key: string]: R
     };
   }, []);
 
+  useEffect(() => {
+    setEditedContent(note.content);
+  }, [note]);
+
   const noteDate = new Date(note.date || note.createdAt);
   const timeString = noteDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -48,10 +59,14 @@ const NoteCard: React.FC<{ note: Note; index: number; styles: { [key: string]: R
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // TODO: API call to update content
-    console.log('Save note:', note.id, editedContent);
+  const handleSave = async () => {
+    try {
+      const updatedNote = await noteService.updateNote(note.id, { content: editedContent, date: note.date });
+      onNoteUpdate(updatedNote);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update note:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -59,8 +74,13 @@ const NoteCard: React.FC<{ note: Note; index: number; styles: { [key: string]: R
     setEditedContent(note.content);
   };
 
-  const handleDelete = () => {
-    // TODO: API call to delete note
+  const handleDelete = async () => {
+    try {
+      await noteService.deleteNote(note.id);
+      onNoteDelete(note.id);
+    } catch (error) {
+      console.error('Failed to delete note:', error);
+    }
     console.log('Delete note:', note.id);
   };
 
@@ -705,10 +725,31 @@ const NotesDisplay: React.FC<{
   styles: { [key: string]: React.CSSProperties };
   intent?: string;
   messageContent?: string;
-}> = ({ notes, styles, intent, messageContent }) => {
+  onNotesChange?: (notes: Note[]) => void;
+}> = ({ notes, styles, intent, messageContent, onNotesChange }) => {
   const [localNotes, setLocalNotes] = useState<Note[]>(notes || []);
   const [addForms, setAddForms] = useState<{ [date: string]: string[] }>({});
   const [datePickers, setDatePickers] = useState<{ [formId: string]: Date }>({});
+
+  useEffect(() => {
+    setLocalNotes(notes || []);
+  }, [notes]);
+
+  const handleNoteUpdate = (updatedNote: Note) => {
+    setLocalNotes((prevNotes) => {
+      const updatedNotes = prevNotes.map((note) => (note.id === updatedNote.id ? { ...note, ...updatedNote } : note));
+      onNotesChange?.(updatedNotes);
+      return updatedNotes;
+    });
+  };
+
+  const handleNoteDelete = (noteId: string) => {
+    setLocalNotes((prevNotes) => {
+      const updatedNotes = prevNotes.filter((note) => note.id !== noteId);
+      onNotesChange?.(updatedNotes);
+      return updatedNotes;
+    });
+  };
 
   const handleAddNote = (content: string, targetDate?: string, formId?: string) => {
     const newNote: Note = {
@@ -720,7 +761,11 @@ const NotesDisplay: React.FC<{
       date: targetDate || new Date().toISOString(),
       userId: 'temp-user',
     };
-    setLocalNotes([...localNotes, newNote]);
+    setLocalNotes((prevNotes) => {
+      const updatedNotes = [...prevNotes, newNote];
+      onNotesChange?.(updatedNotes);
+      return updatedNotes;
+    });
 
     // Remove the specific add form after adding
     if (targetDate && formId) {
@@ -894,6 +939,8 @@ const NotesDisplay: React.FC<{
               note={note}
               index={index}
               styles={styles}
+              onNoteUpdate={handleNoteUpdate}
+              onNoteDelete={handleNoteDelete}
             />
           ))}
 
@@ -1091,8 +1138,15 @@ const NotesDisplay: React.FC<{
 };
 
 export const Message: React.FC<MessageProps> = ({ message, styles }) => {
+  const { messages: chatMessages, setMessages } = useChat();
   const isAI = message.type === 'ai';
   const isLoading = message.id.startsWith('loading-');
+  const handleNotesChange = (updatedNotes: Note[]) => {
+    const nextMessages = chatMessages.map((msg) =>
+      msg.id === message.id ? { ...msg, notes: updatedNotes } : msg
+    );
+    setMessages(nextMessages);
+  };
 
   return (
     <div
@@ -1125,6 +1179,7 @@ export const Message: React.FC<MessageProps> = ({ message, styles }) => {
                   styles={styles}
                   intent={message.intent}
                   messageContent={message.content}
+                  onNotesChange={handleNotesChange}
                 />
               ) : !isLoading ? (
                 <NotesDisplay
@@ -1132,6 +1187,7 @@ export const Message: React.FC<MessageProps> = ({ message, styles }) => {
                   styles={styles}
                   intent={message.intent}
                   messageContent={message.content}
+                  onNotesChange={handleNotesChange}
                 />
               ) : null}
             </div>

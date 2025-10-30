@@ -12,8 +12,6 @@ export const insertNote = async c => {
     );
   }
   const dateAtTimestmp = convertDateToTimestamp(dateAt);
-  const usermetadata = { noteId, userId, dateAt: dateAtTimestmp };
-  console.log('usermetadata: ', usermetadata);
 
   // Create embedding from content + dateAt
   const embeddingInput = `${content}`;

@@ -160,11 +160,6 @@ class OpenRouterQueryAdapter extends QueryAdapter {
       throw new Error('Query must be a non-empty string');
     }
 
-    this.log('INFO', 'Classifying query', {
-      queryLength: query.length,
-      query: query.substring(0, 50),
-    });
-
     const prompt = `
     Given a natural language query, classify the user query into one of :
     - "task_list": user wants tasks for specific time like today/tomorrow/next week ... (date range).
@@ -278,17 +273,8 @@ class OpenRouterQueryAdapter extends QueryAdapter {
           $gte: convertDateToTimestamp(fromDate),
           $lte: convertDateToTimestamp(endDate),
         };
-        this.log('INFO', 'Date range extracted', {
-          fromDate,
-          endDate,
-          filter: dateFilter,
-        });
       } else {
         dateFilter = { $eq: convertDateToTimestamp(fromDate) };
-        this.log('INFO', 'Single date extracted', {
-          fromDate,
-          filter: dateFilter,
-        });
       }
 
       return dateFilter;

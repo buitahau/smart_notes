@@ -1,6 +1,7 @@
 export const cleanJson = text => {
   // Remove markdown code fences
   text = text.replace(/```json|```/g, '');
+  text = text.replace("<｜begin▁of▁sentence｜>", "");
   text = text.trim();
 
   // If array wrapped, take first element
