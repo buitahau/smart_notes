@@ -4,6 +4,7 @@ import aiService from './aiService.js';
 
 class NoteService {
   async createNote(userId, content, dateAt) {
+    dateAt = new Date(new Date(dateAt).setUTCHours(0, 0, 0, 0)).toISOString();
     try {
       const noteData = {
         id: crypto.randomUUID(),
@@ -105,7 +106,7 @@ class NoteService {
             : null;
 
         if (incomingTime !== null && incomingTime !== existingTime) {
-          updateData.dateAt = incomingDate;
+          updateData.dateAt = new Date(new Date(incomingTime).setUTCHours(0, 0, 0, 0)).toISOString();;
         }
       }
 
