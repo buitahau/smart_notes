@@ -26,12 +26,7 @@ export const Home: React.FC = () => {
     const loadMessages = async () => {
       const savedMessages = await storage.get<Message[]>(STORAGE_KEYS.CHAT_MESSAGES);
       if (savedMessages && savedMessages.length > 0) {
-        // Need to convert timestamp strings back to Date objects
-        const messagesWithDates = savedMessages.map(msg => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp),
-        }));
-        setMessages(messagesWithDates);
+        setMessages(savedMessages);
       } else {
         // Initialize welcome message if no messages exist
         setMessages([
@@ -39,7 +34,7 @@ export const Home: React.FC = () => {
             id: '1',
             type: 'ai',
             content: "Hello! 👋 I'm your AI assistant. I can help you with:\n\n• Finding your notes for today\n• Creating new notes\n• Organizing your thoughts\n\nWhat would you like to do?",
-            timestamp: new Date(),
+            timestamp: new Date().toISOString(),
           },
         ]);
       }
@@ -69,7 +64,7 @@ export const Home: React.FC = () => {
       id: `user-${Date.now()}`,
       type: 'user',
       content: userInput,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
 
     // Show loading indicator
@@ -78,7 +73,7 @@ export const Home: React.FC = () => {
       id: loadingMessageId,
       type: 'ai',
       content: 'Thinking',
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
     const updatedMessages = [...messages, userMessage, loadingMessage];
     setMessages(updatedMessages);
@@ -102,7 +97,7 @@ export const Home: React.FC = () => {
           id: `ai-${Date.now()}`,
           type: 'ai',
           content: "Here are your tasks:",
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           notes: notesArray,
           intent: notesData.intent,
         };
@@ -111,7 +106,7 @@ export const Home: React.FC = () => {
           id: `ai-${Date.now()}`,
           type: 'ai',
           content: notesArray.length > 0 ? "Here are your notes:" : "No notes found.",
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           notes: notesArray,
           intent: notesData.intent,
         };
@@ -124,7 +119,7 @@ export const Home: React.FC = () => {
         id: `error-${Date.now()}`,
         type: 'ai',
         content: "Sorry, I encountered an error while processing your request. Please try again.",
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
       setMessages([...filteredMessages, errorResponse]);
     }

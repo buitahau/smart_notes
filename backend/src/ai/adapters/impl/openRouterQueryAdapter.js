@@ -139,6 +139,7 @@ class OpenRouterQueryAdapter extends QueryAdapter {
 
     const raw = response.choices[0].message.content;
 
+    console.log(raw)
     try {
       return cleanJson(raw);
     } catch (error) {
@@ -222,7 +223,7 @@ class OpenRouterQueryAdapter extends QueryAdapter {
     Return ONLY a JSON object, nothing else. No text, no explanation.
     Rules:
     - Always return valid JSON.
-    - "fromDate" and "endDate" must be calculated based on the ACTUAL current date when this prompt is executed — NOT based on any examples below.
+    - "fromDate" and "endDate" must be calculated based on today when this prompt is executed — NOT based on any examples below.
     - If only "fromDate" is detected, set "endDate" to null.
     - Dates must be in ISO format (YYYY-MM-DD).
     - Correct common typos and misspellings in date words.

@@ -8,7 +8,7 @@ interface MessageItemProps {
 }
 
 export const MessageItem: React.FC<MessageItemProps> = ({ message, isPreview = false }) => {
-  const timeString = message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const timeString = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const isAI = message.type === 'ai';
 
   const previewStyles = isPreview ? {

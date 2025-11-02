@@ -12,7 +12,7 @@ interface MessageProps {
     id: string;
     type: 'user' | 'ai';
     content: string;
-    timestamp: Date;
+    timestamp: string;
     notes?: Note[];
     intent?: string;
   };
@@ -48,9 +48,6 @@ const NoteCard: React.FC<{
     setEditedContent(note.content);
   }, [note]);
 
-  const noteDate = new Date(note.date || note.createdAt);
-  const timeString = noteDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
   const handleComplete = () => {
     setIsCompleted(!isCompleted);
     // TODO: API call to update status
@@ -63,7 +60,7 @@ const NoteCard: React.FC<{
 
   const handleSave = async () => {
     try {
-      const updatedNote = await noteService.updateNote(note.id, { content: editedContent, date: note.date });
+      const updatedNote = await noteService.updateNote(note.id, { content: editedContent, date: note.dateAt });
       onNoteUpdate(updatedNote);
       setIsEditing(false);
     } catch (error) {
@@ -107,139 +104,137 @@ const NoteCard: React.FC<{
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
-      {!isEditing && (
-        <div style={{ position: 'absolute', top: '14px', right: '14px' }} ref={menuRef}>
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            style={{
-              display: 'grid',
-              justifyContent: 'center',
-              alignItems: 'center',
-              width: '28px',
-              height: '28px',
-              backgroundColor: 'transparent',
-              color: '#6b7280',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-            title="More options"
-          >
-            <MoreVertical size={16} />
-          </button>
-          {isMenuOpen && (
-            <div style={{
-              position: 'absolute',
-              right: 0,
-              top: '34px',
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              zIndex: 50,
-              width: '200px',
-              padding: '4px',
-              border: '1px solid #e5e7eb'
-            }}>
-              <button
-                onClick={() => { handleComplete(); setIsMenuOpen(false); }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  padding: '8px 12px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontSize: '13px',
-                  color: '#374151',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-              >
-                <Check size={14} />
-                {isCompleted ? 'Mark as Incomplete' : 'Mark as Complete'}
-              </button>
-              <button
-                onClick={() => { handleEdit(); setIsMenuOpen(false); }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  padding: '8px 12px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontSize: '13px',
-                  color: '#374151',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f3f4f6';
-                }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-              >
-                <Edit2 size={14} />
-                Edit Task
-              </button>
-              <button
-                onClick={() => { handleDelete(); setIsMenuOpen(false); }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  padding: '8px 12px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontSize: '13px',
-                  color: '#ef4444',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-              >
-                <Trash2 size={14} />
-                Delete Task
-              </button>
+            <div style={{...styles.noteContent, textDecoration: isCompleted ? 'line-through' : 'none'}}>
+              {isEditing ? (
+                <textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  style={{
+                    width: '100%',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    padding: '8px',
+                    fontSize: '13px',
+                    lineHeight: '1.4',
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                    minHeight: '60px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                  autoFocus
+                />
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{note.content}</span>
+                  {!isEditing && (
+                    <div ref={menuRef} style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        style={{
+                          display: 'grid',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          width: '28px',
+                          height: '28px',
+                          backgroundColor: 'transparent',
+                          color: '#6b7280',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                        title="More options"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                      {isMenuOpen && (
+                        <div style={{
+                          position: 'absolute',
+                          right: 0,
+                          top: '34px',
+                          backgroundColor: 'white',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                          zIndex: 50,
+                          width: '200px',
+                          padding: '4px',
+                          border: '1px solid #e5e7eb'
+                        }}>
+                          <button
+                            onClick={() => { handleComplete(); setIsMenuOpen(false); }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              width: '100%',
+                              padding: '8px 12px',
+                              backgroundColor: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              fontSize: '13px',
+                              color: '#374151',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                          >
+                            <Check size={14} />
+                            {isCompleted ? 'Mark as Incomplete' : 'Mark as Complete'}
+                          </button>
+                          <button
+                            onClick={() => { handleEdit(); setIsMenuOpen(false); }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              width: '100%',
+                              padding: '8px 12px',
+                              backgroundColor: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              fontSize: '13px',
+                              color: '#374151',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#f3f4f6';
+                            }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                          >
+                            <Edit2 size={14} />
+                            Edit Task
+                          </button>
+                          <button
+                            onClick={() => { handleDelete(); setIsMenuOpen(false); }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              width: '100%',
+                              padding: '8px 12px',
+                              backgroundColor: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              fontSize: '13px',
+                              color: '#ef4444',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                          >
+                            <Trash2 size={14} />
+                            Delete Task
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
-      <div style={styles.noteTime}>
-        <ClockIcon size={13} />
-        {timeString}
-      </div>
-      <div style={{...styles.noteContent, textDecoration: isCompleted ? 'line-through' : 'none', paddingRight: '28px'}}>
-        {isEditing ? (
-          <textarea
-            value={editedContent}
-            onChange={(e) => setEditedContent(e.target.value)}
-            style={{
-              width: '100%',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              padding: '8px',
-              fontSize: '13px',
-              lineHeight: '1.4',
-              fontFamily: 'inherit',
-              resize: 'vertical',
-              minHeight: '60px',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-            autoFocus
-          />
-        ) : (
-          note.content
-        )}
-      </div>
       {isEditing && (
         <div style={{
           display: 'flex',
@@ -310,8 +305,7 @@ const groupNotesByDate = (notes: Note[]): { [date: string]: Note[] } => {
   const grouped: { [date: string]: Note[] } = {};
 
   notes.forEach(note => {
-    const noteDate = note.date || note.createdAt;
-    const dateKey = new Date(noteDate).toDateString();
+    const dateKey = new Date(note.dateAt).toDateString();
 
     if (!grouped[dateKey]) {
       grouped[dateKey] = [];
@@ -608,7 +602,7 @@ export const Message: React.FC<MessageProps> = ({ message, styles }) => {
           ...styles.messageTime,
           ...(isAI ? styles.messageTimeAI : styles.messageTimeUser)
         }}>
-          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
       {!isAI && (

@@ -26,7 +26,11 @@ export const AddNewNote: React.FC<AddNewNoteProps> = ({
 
   const handleSave = () => {
     if (content.trim()) {
-      onSave(content.trim(), selectedDate.toISOString());
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const day = selectedDate.getDate();
+      const utcDate = new Date(Date.UTC(year, month, day));
+      onSave(content.trim(), utcDate.toISOString());
     }
   };
 
