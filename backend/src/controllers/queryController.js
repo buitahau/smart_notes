@@ -5,7 +5,7 @@ class QueryController {
     try {
       const { query } = await c.req.json();
       // Extract userId from authenticated user (set by authenticateToken middleware)
-      console.log(query)
+      console.log(query);
       const userId = c.get('user')?.id;
 
       // Enhanced validation

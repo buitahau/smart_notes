@@ -1,7 +1,7 @@
-import QueryAdapter from '../queryAdapter.js';
-import { cleanJson } from '../../utils/json.js';
-import { convertDateToTimestamp } from '../../utils/date.js';
-import { PROVIDERS } from '../../constants/provider.js';
+import QueryAdapter from '../../queryAdapter.js';
+import { cleanJson } from '../../../utils/json.js';
+import { convertDateToTimestamp } from '../../../utils/date.js';
+import { OPEN_ROUTER_CONFIGURATION } from './config.js';
 
 /**
  * Enhanced OpenRouter Query Adapter with error handling and logging
@@ -10,10 +10,10 @@ class OpenRouterQueryAdapter extends QueryAdapter {
   constructor() {
     super();
     // The adapter handles its own API key from environment variables
-    this.apiKey = process.env[PROVIDERS.OPEN_ROUTER.API_KEY_ENV_VAR] || '';
-    this.baseUrl = PROVIDERS.OPEN_ROUTER.BASE_URL;
-    this.model = PROVIDERS.OPEN_ROUTER.MODEL;
-    this.requestTimeout = PROVIDERS.OPEN_ROUTER.REQUEST_TIMEOUT;
+    this.apiKey = process.env[OPEN_ROUTER_CONFIGURATION.API_KEY_ENV_VAR] || '';
+    this.baseUrl = OPEN_ROUTER_CONFIGURATION.BASE_URL;
+    this.model = OPEN_ROUTER_CONFIGURATION.MODEL;
+    this.requestTimeout = OPEN_ROUTER_CONFIGURATION.REQUEST_TIMEOUT;
   }
 
   /**
@@ -97,7 +97,7 @@ class OpenRouterQueryAdapter extends QueryAdapter {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
-        ...PROVIDERS.OPEN_ROUTER.DEFAULT_HEADERS,
+        ...OPEN_ROUTER_CONFIGURATION.DEFAULT_HEADERS,
       },
       body: JSON.stringify(requestBody),
     });
@@ -139,7 +139,7 @@ class OpenRouterQueryAdapter extends QueryAdapter {
 
     const raw = response.choices[0].message.content;
 
-    console.log(raw)
+    console.log(raw);
     try {
       return cleanJson(raw);
     } catch (error) {

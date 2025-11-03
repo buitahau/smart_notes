@@ -106,7 +106,9 @@ class NoteService {
             : null;
 
         if (incomingTime !== null && incomingTime !== existingTime) {
-          updateData.dateAt = new Date(new Date(incomingTime).setUTCHours(0, 0, 0, 0)).toISOString();;
+          updateData.dateAt = new Date(
+            new Date(incomingTime).setUTCHours(0, 0, 0, 0)
+          ).toISOString();
         }
       }
 

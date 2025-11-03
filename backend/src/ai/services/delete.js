@@ -8,9 +8,13 @@ export const deleteNote = async c => {
     return c.json({ error: 'Missing fields: noteId is required' }, 400);
   }
 
-  const result = await apiClient.post(c, `${getVectorizeIndexUrl(c)}/delete_by_ids`, {
-    ids: [noteId],
-  });
+  const result = await apiClient.post(
+    c,
+    `${getVectorizeIndexUrl(c)}/delete_by_ids`,
+    {
+      ids: [noteId],
+    }
+  );
 
   return c.json(result);
 };

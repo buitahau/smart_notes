@@ -2,9 +2,10 @@ import { getVectorizeIndexUrl } from '../../utils/vectorize.js';
 import { apiClient } from '../fetch.js';
 import AdapterFactory from '../../adapters/adapterFactory.js';
 import { createEmbedding } from '../../utils/createEmbedding.js';
+import ProviderEnum from '../../adapters/ProviderEnum.js';
 
 const extractDatesFromQuery = async (c, query) => {
-  const queryAdapter = AdapterFactory.getQueryAdapter();
+  const queryAdapter = AdapterFactory.getQueryAdapter(ProviderEnum.OPEN_AI);
   return await queryAdapter.extractDatesFromQuery(query);
 };
 
@@ -14,9 +15,16 @@ export const queryTaskList = async c => {
     return c.json({ error: 'Missing userId' }, 400);
   }
 
+  const filter = { userId };
+
   // Extract dates from query
   const dateFilter = await extractDatesFromQuery(c, query);
-  console.log('Extracted date filter:', dateFilter);
+  if (dateFilter || dateFilter != {}) {
+    console.log('Extracted date filter:', dateFilter);
+    filter.dateAt = dateFilter;
+  } else {
+    console.error('Can not extract the dates from query ' + query);
+  }
 
   const embeddingVector = await createEmbedding(c, query);
 
@@ -25,13 +33,9 @@ export const queryTaskList = async c => {
     topK: 10,
     returnMetadata: 'all',
     returnValues: false,
-    filter: {
-      userId,
-      dateAt: dateFilter,
-    },
+    filter,
   });
 
   const noteIds = (data.result?.matches || []).map(m => m.metadata.noteId);
-  console.log(noteIds)
   return noteIds;
 };
