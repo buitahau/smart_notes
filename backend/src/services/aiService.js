@@ -1,57 +1,9 @@
-import IntentEnum from '../enums/IntentEnum.js';
 import AdapterFactory from '../ai/adapters/adapterFactory.js';
 import { queryTaskList as queryTaskListFunction } from '../ai/services/query/queryTaskList.js';
 import { queryDateLookup as queryDateLookupFunction } from '../ai/services/query/queryDateLookup.js';
-import { insertNote as insertNoteFunction } from '../ai/services/insert.js';
-import { updateNote as updateNoteFunction } from '../ai/services/update.js';
-import { deleteNote as deleteNoteFunction } from '../ai/services/delete.js';
-
-// Simple rule-based classifier as fallback
-const classifyQuerySimple = query => {
-  const lowerQuery = query.toLowerCase();
-
-  // Date lookup patterns
-  const datePatterns = [
-    /when did/i,
-    /when will/i,
-    /when was/i,
-    /when is/i,
-    /when.*last/i,
-    /when.*next/i,
-    /what.*date/i,
-    /what.*time/i,
-    /what day/i,
-  ];
-
-  // Task list patterns
-  const taskPatterns = [
-    /show.*task/i,
-    /list.*task/i,
-    /get.*task/i,
-    /what.*task/i,
-    /find.*task/i,
-    /search.*task/i,
-    /my.*task/i,
-    /all.*task/i,
-  ];
-
-  // Check date patterns first
-  for (const pattern of datePatterns) {
-    if (pattern.test(lowerQuery)) {
-      return { intent: IntentEnum.DATE_LOOKUP };
-    }
-  }
-
-  // Check task patterns
-  for (const pattern of taskPatterns) {
-    if (pattern.test(lowerQuery)) {
-      return { intent: IntentEnum.TASK_LIST };
-    }
-  }
-
-  // Default to task list
-  return { intent: IntentEnum.TASK_LIST };
-};
+import { insertNote as insertNoteFunction ,
+  updateNote as updateNoteFunction,
+  deleteNote as deleteNoteFunction} from '../ai/services/note-service.js';
 
 // Create context for Node.js environment
 const createContext = (userId, query, noteId, content, dateAt) => {
@@ -69,7 +21,6 @@ const createContext = (userId, query, noteId, content, dateAt) => {
       CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN,
       CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-      OPENAI_EMBEDDING_MODEL: process.env.OPENAI_EMBEDDING_MODEL,
     },
     req: {
       json: async () =>
@@ -97,12 +48,7 @@ class AIService {
       console.log('AI classification result:', result);
       return result;
     } catch (error) {
-      console.warn(
-        'AI classification failed, using simple classifier:',
-        error.message
-      );
-      // Fallback to simple rule-based classification
-      return classifyQuerySimple(query);
+      throw new Error("AI classification failed. Please try again.", error.message);
     }
   }
 

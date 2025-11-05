@@ -7,6 +7,7 @@ class OpenAIQueryAdapter extends QueryAdapter {
     super();
     this.baseUrl = OPEN_AI_CONFIGURATION.BASE_URL;
     this.textModel = OPEN_AI_CONFIGURATION.TEXT_MODEL;
+    this.embeddingModel = OPEN_AI_CONFIGURATION.EMBEDDING_MODEL;
     this.apiKey = process.env[OPEN_AI_CONFIGURATION.OPENAI_API_KEY_ENV_VAR];
   }
 
@@ -65,6 +66,37 @@ class OpenAIQueryAdapter extends QueryAdapter {
       console.error('Date extraction failed with query ' + query, error);
       return null;
     }
+  }
+
+  async createEmbedding(input) {
+    const response = await fetch(`${this.baseUrl}/embeddings`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({
+            input,
+            model: this.embeddingModel,
+        }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+        data?.error?.message ||
+            `OpenAI embeddings request failed: ${response.status}`
+        );
+    }
+
+    const embedding = data?.data?.[0]?.embedding;
+
+    if (!Array.isArray(embedding)) {
+        throw new Error('OpenAI embeddings response is missing embedding data');
+    }
+
+    return embedding;
   }
 
   async makeModelResponse(model, input) {

@@ -27,6 +27,12 @@ class QueryAdapter {
       'extractDatesFromQuery method must be implemented by subclass'
     );
   }
+
+  async createEmbedding(input) {
+     throw new Error(
+      'createEmbedding method must be implemented by subclass'
+    );
+  }
 }
 
 export default QueryAdapter;

@@ -1,7 +1,6 @@
 import { getVectorizeIndexUrl } from '../../utils/vectorize.js';
 import { apiClient } from '../fetch.js';
 import AdapterFactory from '../../adapters/adapterFactory.js';
-import { createEmbedding } from '../../utils/createEmbedding.js';
 import ProviderEnum from '../../adapters/ProviderEnum.js';
 
 const extractDatesFromQuery = async (c, query) => {
@@ -26,7 +25,8 @@ export const queryTaskList = async c => {
     console.error('Can not extract the dates from query ' + query);
   }
 
-  const embeddingVector = await createEmbedding(c, query);
+  const queryAdapter = AdapterFactory.getQueryAdapter(ProviderEnum.OPEN_AI);
+  const embeddingVector = await queryAdapter.createEmbedding(query);
 
   const data = await apiClient.post(c, `${getVectorizeIndexUrl(c)}/query`, {
     vector: embeddingVector,
