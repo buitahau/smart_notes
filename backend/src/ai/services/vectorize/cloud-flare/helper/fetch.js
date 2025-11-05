@@ -4,7 +4,7 @@ import {
   createGetConfig,
   createPutConfig,
   createPostNdjsonConfig,
-} from '../utils/fetchConfig.js';
+} from './fetchConfig.js';
 
 export class FetchError extends Error {
   constructor(message, status, response) {

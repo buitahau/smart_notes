@@ -1,6 +1,6 @@
-import { getVectorizeIndexUrl } from '../utils/vectorize.js';
+import { getVectorizeIndexUrl } from './vectorize/cloud-flare/helper/vectorize-helper.js';
 import { convertDateToTimestamp } from '../utils/date.js';
-import { apiClient } from './fetch.js';
+import { apiClient } from './vectorize/cloud-flare/helper/fetch.js';
 import AdapterFactory from '../adapters/adapterFactory.js';
 import ProviderEnum from '../adapters/ProviderEnum.js';
 
