@@ -30,6 +30,7 @@ const NoteCard: React.FC<{
   const [editedContent, setEditedContent] = useState(note.content);
   const [isCompleted, setIsCompleted] = useState(note.status === 'completed');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,12 +60,16 @@ const NoteCard: React.FC<{
   };
 
   const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
       const updatedNote = await noteService.updateNote(note.id, { content: editedContent, date: note.dateAt });
       onNoteUpdate(updatedNote);
       setIsEditing(false);
     } catch (error) {
       console.error('Failed to update note:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -243,32 +248,8 @@ const NoteCard: React.FC<{
           justifyContent: 'flex-end'
         }}>
             <button
-              onClick={handleSave}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '6px 12px',
-                backgroundColor: '#10b981',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '12px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#059669';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#10b981';
-              }}
-            >
-              <Save size={14} />
-              Save
-            </button>
-            <button
               onClick={handleCancel}
+              disabled={isSaving}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -279,11 +260,14 @@ const NoteCard: React.FC<{
                 border: 'none',
                 borderRadius: '6px',
                 fontSize: '12px',
-                cursor: 'pointer',
+                cursor: isSaving ? 'not-allowed' : 'pointer',
+                opacity: isSaving ? 0.7 : 1,
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4b5563';
+                if (!isSaving) {
+                  e.currentTarget.style.backgroundColor = '#4b5563';
+                }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = '#6b7280';
@@ -291,6 +275,35 @@ const NoteCard: React.FC<{
             >
               <X size={14} />
               Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '6px 12px',
+                backgroundColor: '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '12px',
+                cursor: isSaving ? 'not-allowed' : 'pointer',
+                opacity: isSaving ? 0.7 : 1,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSaving) {
+                  e.currentTarget.style.backgroundColor = '#059669';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#10b981';
+              }}
+            >
+              <Save size={14} />
+              Save
             </button>
         </div>
       )}
