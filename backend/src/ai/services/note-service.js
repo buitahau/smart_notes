@@ -1,8 +1,7 @@
 import { getVectorizeIndexUrl } from './vectorize/cloud-flare/helper/vectorize-helper.js';
 import { convertDateToTimestamp } from '../utils/date.js';
 import { apiClient } from './vectorize/cloud-flare/helper/fetch.js';
-import AdapterFactory from '../adapters/adapterFactory.js';
-import ProviderEnum from '../adapters/ProviderEnum.js';
+import { createEmbedding } from './embedding-service.js';
 
 export const insertNote = async c => {
   const { noteId, content, userId, dateAt } = await c.req.json();
@@ -78,10 +77,4 @@ export const deleteNote = async c => {
   );
 
   return c.json(result);
-};
-
-
-const createEmbedding = async input => {
-  const queryAdapter = AdapterFactory.getQueryAdapter(ProviderEnum.OPEN_AI);
-  return queryAdapter.createEmbedding(input);
 };

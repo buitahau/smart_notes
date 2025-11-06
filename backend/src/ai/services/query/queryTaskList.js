@@ -2,6 +2,7 @@ import { getVectorizeIndexUrl } from '../vectorize/cloud-flare/helper/vectorize-
 import { apiClient } from '../vectorize/cloud-flare/helper/fetch.js';
 import AdapterFactory from '../../adapters/adapterFactory.js';
 import ProviderEnum from '../../adapters/ProviderEnum.js';
+import { createEmbedding } from '../embedding-service.js';
 
 const extractDatesFromQuery = async (c, query) => {
   const queryAdapter = AdapterFactory.getQueryAdapter(ProviderEnum.OPEN_AI);
@@ -25,8 +26,7 @@ export const queryTaskList = async c => {
     console.error('Can not extract the dates from query ' + query);
   }
 
-  const queryAdapter = AdapterFactory.getQueryAdapter(ProviderEnum.OPEN_AI);
-  const embeddingVector = await queryAdapter.createEmbedding(query);
+  const embeddingVector = await createEmbedding(query);
 
   const data = await apiClient.post(c, `${getVectorizeIndexUrl(c)}/query`, {
     vector: embeddingVector,
