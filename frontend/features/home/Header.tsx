@@ -5,6 +5,7 @@ import {
   ChevronDown as ChevronDownIcon,
   UserCircle as UserCircleIcon,
   LogOut as LogOutIcon,
+  Settings as SettingsIcon,
 } from 'lucide-react';
 import { useMiniRouter } from '@context/router-context';
 
@@ -13,6 +14,7 @@ interface HeaderProps {
   showUserMenu: boolean;
   onToggleUserMenu: () => void;
   onProfile: () => void;
+  onSettings: () => void;
   onLogout: () => void;
   onCreateNote: () => void;
   userMenuRef: React.RefObject<HTMLDivElement>;
@@ -24,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   showUserMenu,
   onToggleUserMenu,
   onProfile,
+  onSettings,
   onLogout,
   onCreateNote,
   userMenuRef,
@@ -77,6 +80,22 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <UserCircleIcon size={16} />
               <span>Profile</span>
+            </div>
+            <div
+              style={styles.menuItem}
+              onClick={onSettings}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  styles.menuItemHover.backgroundColor || '#f8fafc';
+                e.currentTarget.style.color = styles.menuItemHover.color || '#6366f1';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = styles.menuItem.color || '#374151';
+              }}
+            >
+              <SettingsIcon size={16} />
+              <span>Settings</span>
             </div>
             <div
               style={styles.menuItem}

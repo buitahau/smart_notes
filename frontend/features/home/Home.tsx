@@ -141,6 +141,11 @@ export const Home: React.FC = () => {
     setShowUserMenu(false);
   };
 
+  const handleSettings = () => {
+    navigate('settings');
+    setShowUserMenu(false);
+  };
+
   const handleLogout = async () => {
     await storage.clear();
     await logout();
@@ -311,6 +316,7 @@ export const Home: React.FC = () => {
         showUserMenu={showUserMenu}
         onToggleUserMenu={toggleUserMenu}
         onProfile={handleProfile}
+        onSettings={handleSettings}
         onLogout={handleLogout}
         onCreateNote={handleCreateNote}
         userMenuRef={userMenuRef}

@@ -3,6 +3,7 @@ import { Login } from '@pages/login';
 import { Signup } from '@pages/signup';
 import { Home } from '@pages/home';
 import { Loading } from '@pages/loading';
+import { Settings } from '@pages/settings';
 
 import { RouterProvider, useMiniRouter } from '@context/router-context';
 import { RequiredAuth } from '@guard/require-auth';
@@ -33,6 +34,12 @@ const AppContent: React.FC = () => {
         return (
           <RequiredAuth>
             <CreateNote />
+          </RequiredAuth>
+        );
+      case 'settings':
+        return (
+          <RequiredAuth>
+            <Settings />
           </RequiredAuth>
         );
       case 'login':

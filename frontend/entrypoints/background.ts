@@ -1,7 +1,8 @@
 import { defineBackground } from 'wxt/sandbox';
-import { STORAGE_KEYS } from '@utils/constants';
+import { DEFAULT_NOTIFICATION_SETTINGS, STORAGE_KEYS } from '@utils/constants';
 import { storage } from '@utils/storage';
 import type { Note } from '@services/note-service';
+import type { NotificationSettings } from '@types/settings';
 
 type BackgroundMessage = {
   type: string;
@@ -18,15 +19,34 @@ type StoredMessage = {
 };
 
 const NOTIFICATION_ALARM_NAME = 'smart_note_task_notification';
-const NOTIFICATION_INTERVAL_MINUTES = 1;
 
-const ensureReminderAlarm = () => {
+const getStoredNotificationSettings = async (): Promise<NotificationSettings> => {
+  const stored =
+    (await storage.get<NotificationSettings>(STORAGE_KEYS.NOTIFICATION_SETTINGS)) ??
+    DEFAULT_NOTIFICATION_SETTINGS;
+
+  return {
+    enabled: stored.enabled ?? DEFAULT_NOTIFICATION_SETTINGS.enabled,
+    intervalMinutes: Math.max(1, stored.intervalMinutes ?? DEFAULT_NOTIFICATION_SETTINGS.intervalMinutes),
+  };
+};
+
+const syncReminderAlarm = async () => {
   if (!chrome?.alarms) return;
 
+  const settings = await getStoredNotificationSettings();
+
+  if (!settings.enabled) {
+    chrome.alarms.clear(NOTIFICATION_ALARM_NAME);
+    return;
+  }
+
+  const desiredInterval = Math.max(1, settings.intervalMinutes);
+
   chrome.alarms.get(NOTIFICATION_ALARM_NAME, (existingAlarm) => {
-    if (!existingAlarm) {
+    if (!existingAlarm || existingAlarm.periodInMinutes !== desiredInterval) {
       chrome.alarms.create(NOTIFICATION_ALARM_NAME, {
-        periodInMinutes: NOTIFICATION_INTERVAL_MINUTES,
+        periodInMinutes: desiredInterval,
       });
     }
   });
@@ -52,6 +72,11 @@ const truncateContent = (content: string) => {
 
 const showTaskReminderNotification = async () => {
   try {
+    const settings = await getStoredNotificationSettings();
+    if (!settings.enabled) {
+      return;
+    }
+
     const storedMessages =
       (await storage.get<StoredMessage[]>(STORAGE_KEYS.CHAT_MESSAGES)) ?? [];
 
@@ -82,11 +107,23 @@ export default defineBackground(() => {
     } else if (details.reason === 'update') {
       console.log('Extension updated');
     }
-    ensureReminderAlarm();
+    void syncReminderAlarm();
   });
 
-  chrome.runtime.onStartup?.addListener(() => ensureReminderAlarm());
-  ensureReminderAlarm();
+  chrome.runtime.onStartup?.addListener(() => {
+    void syncReminderAlarm();
+  });
+  void syncReminderAlarm();
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== 'local') {
+      return;
+    }
+
+    if (STORAGE_KEYS.NOTIFICATION_SETTINGS in changes) {
+      void syncReminderAlarm();
+    }
+  });
 
   chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === NOTIFICATION_ALARM_NAME) {
