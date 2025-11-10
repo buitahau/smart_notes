@@ -1,25 +1,31 @@
 import CloudFlareVectorizeService from "./cloud-flare/cloud-flare-vectorize-service.js";
 
-const cloudFlareVectorizeService = new CloudFlareVectorizeService();
+let serviceInstance = null;
+const getServiceInstance = () => {
+  if (!serviceInstance) {
+    serviceInstance = new CloudFlareVectorizeService();
+  }
+  return serviceInstance;
+}
 
 export const createIndex = async () => {
-  return cloudFlareVectorizeService.createIndex();
+  return getServiceInstance().createIndex();
 };
 
 export const createMetadataIndex = async () => {
-  return cloudFlareVectorizeService.createMetadataIndex();
+  return getServiceInstance().createMetadataIndex();
 };
 
 export const deleteIndex = async indexName => {
-  return cloudFlareVectorizeService.deleteIndex(indexName);
+  return getServiceInstance().deleteIndex(indexName);
 };
 
 export const listMetadataIndex = async () => {
-  return cloudFlareVectorizeService.listMetadataIndex();
+  return getServiceInstance().listMetadataIndex();
 };
 
 export const insertVector = async (noteId, userId, dateAtTimestamp, values) => {
-  return cloudFlareVectorizeService.insertVector(
+  return getServiceInstance().insertVector(
     noteId,
     userId,
     dateAtTimestamp,
@@ -28,7 +34,7 @@ export const insertVector = async (noteId, userId, dateAtTimestamp, values) => {
 };
 
 export const upsertVector = async (noteId, userId, dateAtTimestamp, values) => {
-  return cloudFlareVectorizeService.upsertVector(
+  return getServiceInstance().upsertVector(
     noteId,
     userId,
     dateAtTimestamp,
@@ -37,5 +43,5 @@ export const upsertVector = async (noteId, userId, dateAtTimestamp, values) => {
 };
 
 export const deleteVectorById = async noteId => {
-  return cloudFlareVectorizeService.deleteVectorById(noteId);
+  return getServiceInstance().deleteVectorById(noteId);
 };

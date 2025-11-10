@@ -1,5 +1,54 @@
 import noteService from '../services/noteService.js';
 
+const MAX_NOTE_LENGTH = 10000;
+const ONE_YEAR_IN_FUTURE = () => {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() + 1);
+  return date;
+};
+
+const buildValidationError = (message, status = 400) => ({
+  ok: false,
+  status,
+  message,
+});
+
+const validateAndNormalize = (content, date) => {
+  if (!content || typeof content !== 'string' || content.trim() === '') {
+    return buildValidationError(
+      'Note content is required and must be a non-empty string'
+    );
+  }
+
+  const trimmedContent = content.trim();
+  if (trimmedContent.length > MAX_NOTE_LENGTH) {
+    return buildValidationError(
+      'Note content exceeds maximum length of 10,000 characters'
+    );
+  }
+
+  if (!date || typeof date !== 'string' || date.trim() === '') {
+    return buildValidationError(
+      'Date is required and must be a valid ISO string'
+    );
+  }
+
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) {
+    return buildValidationError(
+      'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)'
+    );
+  }
+
+  if (parsedDate > ONE_YEAR_IN_FUTURE()) {
+    return buildValidationError(
+      'Date cannot be more than one year in the future'
+    );
+  }
+
+  return { ok: true, content: trimmedContent, dateAt: parsedDate };
+};
+
 class NoteController {
   async createNote(c) {
     try {
@@ -18,73 +67,21 @@ class NoteController {
         );
       }
 
-      if (!content || typeof content !== 'string' || content.trim() === '') {
+      const validation = validateAndNormalize(content, date);
+      if (!validation.ok) {
         return c.json(
           {
             success: false,
-            message: 'Note content is required and must be a non-empty string',
+            message: validation.message,
           },
-          400
+          validation.status
         );
-      }
-
-      // Enhanced content validation
-      const trimmedContent = content.trim();
-      if (trimmedContent.length > 10000) {
-        return c.json(
-          {
-            success: false,
-            message: 'Note content exceeds maximum length of 10,000 characters',
-          },
-          400
-        );
-      }
-
-      // Enhanced date validation
-      let dateAt = null;
-      if (date) {
-        if (typeof date !== 'string') {
-          return c.json(
-            {
-              success: false,
-              message: 'Date must be a valid ISO string',
-            },
-            400
-          );
-        }
-
-        const parsedDate = new Date(date);
-        if (isNaN(parsedDate.getTime())) {
-          return c.json(
-            {
-              success: false,
-              message:
-                'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
-            },
-            400
-          );
-        }
-
-        // Prevent future dates beyond reasonable limit (1 year)
-        const oneYearFromNow = new Date();
-        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-        if (parsedDate > oneYearFromNow) {
-          return c.json(
-            {
-              success: false,
-              message: 'Date cannot be more than one year in the future',
-            },
-            400
-          );
-        }
-
-        dateAt = parsedDate;
       }
 
       const result = await noteService.createNote(
         userId,
-        trimmedContent,
-        dateAt
+        validation.content,
+        validation.dateAt
       );
 
       if (!result.success) {
@@ -266,74 +263,22 @@ class NoteController {
         );
       }
 
-      if (!content || typeof content !== 'string' || content.trim() === '') {
+      const validation = validateAndNormalize(content, date);
+      if (!validation.ok) {
         return c.json(
           {
             success: false,
-            message: 'Note content is required and must be a non-empty string',
+            message: validation.message,
           },
-          400
+          validation.status
         );
-      }
-
-      // Enhanced content validation
-      const trimmedContent = content.trim();
-      if (trimmedContent.length > 10000) {
-        return c.json(
-          {
-            success: false,
-            message: 'Note content exceeds maximum length of 10,000 characters',
-          },
-          400
-        );
-      }
-
-      // Enhanced date validation
-      let dateAt = null;
-      if (date) {
-        if (typeof date !== 'string') {
-          return c.json(
-            {
-              success: false,
-              message: 'Date must be a valid ISO string',
-            },
-            400
-          );
-        }
-
-        const parsedDate = new Date(date);
-        if (isNaN(parsedDate.getTime())) {
-          return c.json(
-            {
-              success: false,
-              message:
-                'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
-            },
-            400
-          );
-        }
-
-        // Prevent future dates beyond reasonable limit (1 year)
-        const oneYearFromNow = new Date();
-        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-        if (parsedDate > oneYearFromNow) {
-          return c.json(
-            {
-              success: false,
-              message: 'Date cannot be more than one year in the future',
-            },
-            400
-          );
-        }
-
-        dateAt = parsedDate;
       }
 
       const result = await noteService.updateNote(
         id.trim(),
         userId,
-        trimmedContent,
-        dateAt
+        validation.content,
+        validation.dateAt
       );
 
       if (!result.success) {

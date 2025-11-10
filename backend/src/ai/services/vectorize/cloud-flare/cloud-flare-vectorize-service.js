@@ -60,7 +60,10 @@ class CloudFlareVectorizeService {
         propertyName,
       };
 
-      await apiClient.post(this.context, metadataUrl, payload);
+      const result = await apiClient.post(this.context, metadataUrl, payload);
+      if (result.error) {
+        throw new Error(`Failed to create metadata index for ${propertyName}: ${result.error}`);
+      }
     }
 
     return { success: true };
@@ -85,15 +88,7 @@ class CloudFlareVectorizeService {
   }
 
   async insertVector(noteId, userId, dateAtTimestamp, values) {
-    const vectorPayload = {
-      id: noteId,
-      values,
-      metadata: {
-        noteId,
-        userId,
-        dateAt: dateAtTimestamp,
-      },
-    };
+    const vectorPayload = this._buildVectorPayload(noteId, userId, dateAtTimestamp, values);
 
     return apiClient.postNdjson(
       this.context,
@@ -103,15 +98,7 @@ class CloudFlareVectorizeService {
   }
 
   async upsertVector(noteId, userId, dateAtTimestamp, values) {
-    const vectorPayload = {
-      id: noteId,
-      values,
-      metadata: {
-        noteId,
-        userId,
-        dateAt: dateAtTimestamp,
-      },
-    };
+    const vectorPayload = this._buildVectorPayload(noteId, userId, dateAtTimestamp, values);
 
     return apiClient.postNdjson(
       this.context,
@@ -126,6 +113,18 @@ class CloudFlareVectorizeService {
       `${getVectorizeIndexUrl(this.context)}/delete_by_ids`,
       { ids: [noteId] }
     );
+  }
+
+  _buildVectorPayload(noteId, userId, dateAtTimestamp, values) {
+    return {
+      id: noteId,
+      values,
+      metadata: {
+        noteId,
+        userId,
+        dateAt: dateAtTimestamp,
+      },
+    };
   }
 }
 
