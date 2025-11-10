@@ -1,7 +1,10 @@
-import { getVectorizeIndexUrl } from './vectorize/cloud-flare/helper/vectorize-helper.js';
 import { convertDateToTimestamp } from '../utils/date.js';
-import { apiClient } from './vectorize/cloud-flare/helper/fetch.js';
 import { createEmbedding } from './embedding-service.js';
+import {
+  insertVector,
+  upsertVector,
+  deleteVectorById,
+} from './vectorize/vectorize-service.js';
 
 export const insertNote = async c => {
   const { noteId, content, userId, dateAt } = await c.req.json();
@@ -15,16 +18,11 @@ export const insertNote = async c => {
 
   const embedding = await createEmbedding(content);
 
-  // Insert vector with noteId + userId metadata
-  const vector = {
-    id: noteId,
-    values: embedding,
-    metadata: { noteId, userId, dateAt: dateAtTimestmp },
-  };
-  const result = await apiClient.postNdjson(
-    c,
-    `${getVectorizeIndexUrl(c)}/insert`,
-    vector
+  const result = await insertVector(
+    noteId,
+    userId,
+    dateAtTimestmp,
+    embedding
   );
   return c.json(result);
 };
@@ -39,22 +37,14 @@ export const updateNote = async c => {
     );
   }
 
-  const payload = {
-    id: noteId,
-    metadata: {
-      noteId,
-      userId,
-      dateAt: convertDateToTimestamp(dateAt),
-    },
-  };
+  const dateAtTimestamp = convertDateToTimestamp(dateAt);
+  const embedding = await createEmbedding(content);
 
-  payload.values = await createEmbedding(content);
-
-  // Use upsert so the vector is created when missing and updated otherwise
-  const result = await apiClient.postNdjson(
-    c,
-    `${getVectorizeIndexUrl(c)}/upsert`,
-    payload
+  const result = await upsertVector(
+    noteId,
+    userId,
+    dateAtTimestamp,
+    embedding
   );
 
   return c.json(result);
@@ -68,13 +58,7 @@ export const deleteNote = async c => {
     return c.json({ error: 'Missing fields: noteId is required' }, 400);
   }
 
-  const result = await apiClient.post(
-    c,
-    `${getVectorizeIndexUrl(c)}/delete_by_ids`,
-    {
-      ids: [noteId],
-    }
-  );
+  const result = await deleteVectorById(noteId);
 
   return c.json(result);
 };

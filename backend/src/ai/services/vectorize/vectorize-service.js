@@ -17,3 +17,25 @@ export const deleteIndex = async indexName => {
 export const listMetadataIndex = async () => {
   return cloudFlareVectorizeService.listMetadataIndex();
 };
+
+export const insertVector = async (noteId, userId, dateAtTimestamp, values) => {
+  return cloudFlareVectorizeService.insertVector(
+    noteId,
+    userId,
+    dateAtTimestamp,
+    values
+  );
+};
+
+export const upsertVector = async (noteId, userId, dateAtTimestamp, values) => {
+  return cloudFlareVectorizeService.upsertVector(
+    noteId,
+    userId,
+    dateAtTimestamp,
+    values
+  );
+};
+
+export const deleteVectorById = async noteId => {
+  return cloudFlareVectorizeService.deleteVectorById(noteId);
+};

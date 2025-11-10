@@ -83,6 +83,50 @@ class CloudFlareVectorizeService {
       `${getVectorizeIndexUrl(this.context)}/metadata_index/list`
     );
   }
+
+  async insertVector(noteId, userId, dateAtTimestamp, values) {
+    const vectorPayload = {
+      id: noteId,
+      values,
+      metadata: {
+        noteId,
+        userId,
+        dateAt: dateAtTimestamp,
+      },
+    };
+
+    return apiClient.postNdjson(
+      this.context,
+      `${getVectorizeIndexUrl(this.context)}/insert`,
+      vectorPayload
+    );
+  }
+
+  async upsertVector(noteId, userId, dateAtTimestamp, values) {
+    const vectorPayload = {
+      id: noteId,
+      values,
+      metadata: {
+        noteId,
+        userId,
+        dateAt: dateAtTimestamp,
+      },
+    };
+
+    return apiClient.postNdjson(
+      this.context,
+      `${getVectorizeIndexUrl(this.context)}/upsert`,
+      vectorPayload
+    );
+  }
+
+  async deleteVectorById(noteId) {
+    return apiClient.post(
+      this.context,
+      `${getVectorizeIndexUrl(this.context)}/delete_by_ids`,
+      { ids: [noteId] }
+    );
+  }
 }
 
 export default CloudFlareVectorizeService;
