@@ -1,11 +1,7 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
 import { notes } from './schema/note.js';
 import { eq, inArray } from 'drizzle-orm';
 import Note from '../models/Note.js';
-
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql);
+import { db } from './client.js';
 
 const mapRowToNote = row => {
   return new Note(

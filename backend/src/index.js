@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import noteRoutes from './routes/notes.js';
 import queryRoutes from './routes/query.js';
 import indexRoutes from './routes/indexes.js';
+import settingRoutes from './routes/settings.js';
 
 const app = new Hono();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.route('/api/auth', authRoutes);
 app.route('/api/notes', noteRoutes);
 app.route('/api/query', queryRoutes);
 app.route('/api/indexes', indexRoutes);
+app.route('/api/settings', settingRoutes);
 
 app.get('/', c => {
   return c.json({ message: 'API is running' });
