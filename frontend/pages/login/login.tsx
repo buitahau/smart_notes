@@ -62,15 +62,13 @@ export function Login() {
     updateField(name as keyof typeof formData, type === 'checkbox' ? checked : value);
   };
 
-  const handleForgotPasswordClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onForgotPassword) {
-      onForgotPassword();
-    }
+  const onForgotPassword = () => {
+    navigate('forgot-password');
   };
 
-  const onForgotPassword = () => {
-    console.log('Forgot password clicked');
+  const handleForgotPasswordClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onForgotPassword();
   };
 
   // Function to show notification (can be called from signup or other components)
