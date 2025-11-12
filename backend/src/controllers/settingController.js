@@ -46,84 +46,100 @@ const coerceBoolean = value => {
   return null;
 };
 
-const validateSettingPayload = (
+const buildValidationError = message => ({
+  ok: false,
+  message,
+});
+
+const extractSettingFields = payload => ({
+  receiveReminder: payload.receiveReminder,
+  intervalMinutes: payload.intervalMinutes,
+});
+
+const ensureFieldPresence = (fields, requireBothFields) => {
+  const hasReceiveReminder = fields.receiveReminder !== undefined;
+  const hasIntervalMinutes = fields.intervalMinutes !== undefined;
+
+  if (requireBothFields) {
+    if (!hasReceiveReminder) {
+      return buildValidationError('receiveReminder is required');
+    }
+    if (!hasIntervalMinutes) {
+      return buildValidationError('intervalMinutes is required');
+    }
+    return { ok: true };
+  }
+
+  if (!hasReceiveReminder && !hasIntervalMinutes) {
+    return buildValidationError(
+      'At least one field (receiveReminder or intervalMinutes) is required'
+    );
+  }
+
+  return { ok: true };
+};
+
+const parseReceiveReminder = inputValue => {
+  if (inputValue === undefined) {
+    return buildValidationError('receiveReminder must not be empty');
+  }
+
+  const coerced = coerceBoolean(inputValue);
+  if (coerced === null) {
+    return buildValidationError('receiveReminder must be a boolean value');
+  }
+
+  return { ok: true, value: coerced };
+};
+
+const parseIntervalMinutes = inputValue => {
+  if (inputValue === undefined) {
+    return buildValidationError('intervalMinutes must not be empty');
+  }
+
+  const parsed = Number(inputValue);
+  if (!Number.isInteger(parsed)) {
+    return buildValidationError('intervalMinutes must be an integer value');
+  }
+
+  if (parsed < MIN_INTERVAL_MINUTES || parsed > MAX_INTERVAL_MINUTES) {
+    return buildValidationError(
+      `intervalMinutes must be between ${MIN_INTERVAL_MINUTES} and ${MAX_INTERVAL_MINUTES} minutes`
+    );
+  }
+
+  return { ok: true, value: parsed };
+};
+
+const validateAndParsingSettingPayload = (
   payload,
   { requireBothFields = false } = {}
 ) => {
   if (!payload || typeof payload !== 'object') {
-    return {
-      ok: false,
-      message: 'Request body must include setting fields',
-    };
+    return buildValidationError('Request body must include setting fields');
   }
 
-  const rawReceiveReminder =
-    payload.receiveReminder ?? payload.receive_reminder;
-  const rawIntervalMinutes =
-    payload.intervalMinutes ?? payload.interval_minutes;
-
-  const hasReceiveReminder = rawReceiveReminder !== undefined;
-  const hasIntervalMinutes = rawIntervalMinutes !== undefined;
-
-  if (requireBothFields) {
-    if (!hasReceiveReminder) {
-      return {
-        ok: false,
-        message: 'receiveReminder is required',
-      };
-    }
-    if (!hasIntervalMinutes) {
-      return {
-        ok: false,
-        message: 'intervalMinutes is required',
-      };
-    }
-  } else if (!hasReceiveReminder && !hasIntervalMinutes) {
-    return {
-      ok: false,
-      message: 'At least one field (receiveReminder or intervalMinutes) is required',
-    };
+  const fields = extractSettingFields(payload);
+  const presenceResult = ensureFieldPresence(fields, requireBothFields);
+  if (!presenceResult.ok) {
+    return presenceResult;
   }
 
-  let receiveReminder;
-  if (hasReceiveReminder) {
-    receiveReminder = coerceBoolean(rawReceiveReminder);
-    if (receiveReminder === null) {
-      return {
-        ok: false,
-        message: 'receiveReminder must be a boolean value',
-      };
-    }
+  const receiveReminderResult = parseReceiveReminder(fields.receiveReminder);
+  if (!receiveReminderResult.ok) {
+    return receiveReminderResult;
   }
 
-  let intervalMinutes;
-  if (hasIntervalMinutes) {
-    const parsedInterval = Number(rawIntervalMinutes);
-    if (!Number.isInteger(parsedInterval)) {
-      return {
-        ok: false,
-        message: 'intervalMinutes must be an integer value',
-      };
-    }
-
-    if (
-      parsedInterval < MIN_INTERVAL_MINUTES ||
-      parsedInterval > MAX_INTERVAL_MINUTES
-    ) {
-      return {
-        ok: false,
-        message: `intervalMinutes must be between ${MIN_INTERVAL_MINUTES} and ${MAX_INTERVAL_MINUTES} minutes`,
-      };
-    }
-
-    intervalMinutes = parsedInterval;
+  const intervalMinutesResult = parseIntervalMinutes(fields.intervalMinutes);
+  if (!intervalMinutesResult.ok) {
+    return intervalMinutesResult;
   }
 
   return {
     ok: true,
     data: {
-      receiveReminder,
-      intervalMinutes,
+      receiveReminder: receiveReminderResult.value,
+      intervalMinutes: intervalMinutesResult.value,
     },
   };
 };
@@ -160,7 +176,7 @@ class SettingController {
         return respondWithError(c, bodyResult.message, 400);
       }
 
-      const validation = validateSettingPayload(bodyResult.payload, {
+      const validation = validateAndParsingSettingPayload(bodyResult.payload, {
         requireBothFields: true,
       });
       if (!validation.ok) {
@@ -279,12 +295,60 @@ class SettingController {
         return respondWithError(c, bodyResult.message, 400);
       }
 
-      const validation = validateSettingPayload(bodyResult.payload);
+      const validation = validateAndParsingSettingPayload(bodyResult.payload, {
+        requireBothFields: true,
+      });
       if (!validation.ok) {
         return respondWithError(c, validation.message, 400);
       }
 
       const result = await settingService.updateSetting(
+        userId,
+        validation.data.receiveReminder,
+        validation.data.intervalMinutes
+      );
+
+      if (!result.success) {
+        const status =
+          result.error === 'Setting not found' ? 404 : 400;
+        return respondWithError(
+          c,
+          result.error || 'Failed to update setting',
+          status
+        );
+      }
+
+      return c.json({
+        success: true,
+        message: 'Setting updated successfully',
+        setting: mapSetting(result.setting),
+      });
+    } catch (error) {
+      console.error('Error updating setting:', error);
+      return respondWithError(
+        c,
+        'Internal server error while updating setting',
+        500
+      );
+    }
+  }
+
+  async partialUpdateSetting(c) {
+    try {
+      const userId = ensureAuthenticatedUser(c);
+      if (!userId) return;
+
+      const bodyResult = await readJsonBody(c);
+      if (!bodyResult.ok) {
+        return respondWithError(c, bodyResult.message, 400);
+      }
+
+      const validation = validateAndParsingSettingPayload(bodyResult.payload);
+      if (!validation.ok) {
+        return respondWithError(c, validation.message, 400);
+      }
+
+      const result = await settingService.partialUpdate(
         userId,
         validation.data
       );

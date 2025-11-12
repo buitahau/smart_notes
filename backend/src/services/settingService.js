@@ -48,7 +48,34 @@ class SettingService {
     }
   }
 
-  async updateSetting(userId, updates) {
+  async updateSetting(userId, receiveReminder, intervalMinutes) {
+    try {
+      const existing = await settingRepository.getByUserId(userId);
+      if (!existing) {
+        return {
+          success: false,
+          error: 'Setting not found',
+        };
+      }
+
+      const updated = await settingRepository.update(existing.id, {
+        receiveReminder,
+        intervalMinutes,
+      });
+
+      return {
+        success: true,
+        setting: updated,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  async partialUpdate(userId, updates) {
     try {
       const existing = await settingRepository.getByUserId(userId);
       if (!existing) {
