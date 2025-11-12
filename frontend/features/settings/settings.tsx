@@ -321,7 +321,7 @@ const styles = {
     width: '48px',
     height: '26px',
     borderRadius: '999px',
-    border: '1px solid #e5e7eb',
+    // border: '1px solid #e5e7eb',
     backgroundColor: '#e5e7eb',
     display: 'flex',
     alignItems: 'center',
@@ -331,7 +331,7 @@ const styles = {
   },
   toggleActive: {
     backgroundColor: '#4f46e5',
-    borderColor: '#4f46e5',
+    // borderColor: '#4f46e5',
   },
   toggleDisabled: {
     opacity: 0.5,
@@ -364,7 +364,6 @@ const styles = {
     color: '#374151',
   },
   intervalInput: {
-    width: '100%',
     padding: '12px 14px',
     borderRadius: '12px',
     border: '1px solid #d1d5db',

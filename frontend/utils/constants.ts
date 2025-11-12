@@ -28,6 +28,9 @@ export const API_ENDPOINTS = {
   SETTINGS: {
     NOTIFICATIONS: '/api/settings/notifications',
   },
+  PROFILE: {
+    BASE: '/api/profile',
+  },
 } as const;
 
 /**

@@ -34,12 +34,38 @@ export const signIn = async (payload: LoginFormData): Promise<LoginResponse> => 
   }
 };
 
+const deriveNamesFromUsername = (fullName: string | null) => {
+  if (!fullName || !fullName.trim() || fullName.includes('@')) {
+    return { firstName: null, lastName: null };
+  }
+
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: null };
+  }
+
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(' '),
+  };
+};
+
 const updateStorage = async (data: any) => {
   const username = data.user?.user_metadata?.username ?? data.user?.email ?? null;
+  const email = data.user?.email ?? null;
   const token = data.session?.access_token ?? null;
+  const firstNameFromMeta = data.user?.user_metadata?.firstName ?? data.user?.user_metadata?.first_name ?? null;
+  const lastNameFromMeta = data.user?.user_metadata?.lastName ?? data.user?.user_metadata?.last_name ?? null;
+  const derivedNames = deriveNamesFromUsername(username);
 
-  const userDetails = { username } as UserDetails;
-  if (username) {
+  const userDetails: UserDetails = {
+    username,
+    email,
+    firstName: firstNameFromMeta ?? derivedNames.firstName,
+    lastName: lastNameFromMeta ?? derivedNames.lastName,
+  };
+
+  if (username || email) {
     await storage.set(STORAGE_KEYS.USER, userDetails);
   }
   if (token) {

@@ -10,6 +10,7 @@ const PROTECTED_APIS = [
   API_ENDPOINTS.NOTES.BASE,
   API_ENDPOINTS.QUERY.BASE,
   API_ENDPOINTS.SETTINGS.NOTIFICATIONS,
+  API_ENDPOINTS.PROFILE.BASE,
 ] as const;
 
 // Create axios instance with base configuration

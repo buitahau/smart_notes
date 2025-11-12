@@ -26,7 +26,10 @@ export interface ValidateTokenResponse {
 }
 
 export interface UserDetails {
-  username: string;
+  username: string | null;
+  email: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
 }
 
 export interface NotificationMessageProps {

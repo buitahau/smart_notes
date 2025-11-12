@@ -137,7 +137,7 @@ export const Home: React.FC = () => {
   };
 
   const handleProfile = () => {
-    console.log('Open profile');
+    navigate('profile');
     setShowUserMenu(false);
   };
 
@@ -155,8 +155,16 @@ export const Home: React.FC = () => {
   // Close menu when clicking outside
   useEffect(() => {
     const loadProfile = async () => {
-      const userDetail = (await storage.get(STORAGE_KEYS.USER)) as UserDetails;
-      setUserName(userDetail.username ?? '');
+      const userDetail = (await storage.get(STORAGE_KEYS.USER)) as UserDetails | null;
+      if (userDetail) {
+        const composedName = [userDetail.firstName, userDetail.lastName]
+          .filter((value) => Boolean(value && value.trim()))
+          .join(' ')
+          .trim();
+        setUserName(composedName || userDetail.username || userDetail.email || '');
+      } else {
+        setUserName('');
+      }
     };
     loadProfile();
 
