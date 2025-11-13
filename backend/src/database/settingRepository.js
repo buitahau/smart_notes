@@ -46,6 +46,16 @@ export const settingRepository = {
     return mapRowToSetting(row);
   },
 
+  async existingByUserId(userId) {
+    const res = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.userId, userId))
+      .limit(1);
+
+    return res.length > 0;
+  },
+
   async getAll() {
     const rows = await db.select().from(settings);
     return rows.map(mapRowToSetting).filter(Boolean);

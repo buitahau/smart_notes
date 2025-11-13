@@ -8,9 +8,7 @@ router.use('*', authenticateToken);
 
 router.post('/', c => settingController.createSetting(c));
 router.get('/', c => settingController.getSetting(c));
-router.put('/', c => settingController.updateSetting(c));
 router.patch('/', c => settingController.partialUpdateSetting(c));
-router.delete('/', c => settingController.deleteSetting(c));
 router.post('/createDefaultSetting', c =>
   settingController.createDefaultSetting(c)
 );

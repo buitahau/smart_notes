@@ -51,99 +51,6 @@ const buildValidationError = message => ({
   message,
 });
 
-const extractSettingFields = payload => ({
-  receiveReminder: payload.receiveReminder,
-  intervalMinutes: payload.intervalMinutes,
-});
-
-const ensureFieldPresence = (fields, requireBothFields) => {
-  const hasReceiveReminder = fields.receiveReminder !== undefined;
-  const hasIntervalMinutes = fields.intervalMinutes !== undefined;
-
-  if (requireBothFields) {
-    if (!hasReceiveReminder) {
-      return buildValidationError('receiveReminder is required');
-    }
-    if (!hasIntervalMinutes) {
-      return buildValidationError('intervalMinutes is required');
-    }
-    return { ok: true };
-  }
-
-  if (!hasReceiveReminder && !hasIntervalMinutes) {
-    return buildValidationError(
-      'At least one field (receiveReminder or intervalMinutes) is required'
-    );
-  }
-
-  return { ok: true };
-};
-
-const parseReceiveReminder = inputValue => {
-  if (inputValue === undefined) {
-    return buildValidationError('receiveReminder must not be empty');
-  }
-
-  const coerced = coerceBoolean(inputValue);
-  if (coerced === null) {
-    return buildValidationError('receiveReminder must be a boolean value');
-  }
-
-  return { ok: true, value: coerced };
-};
-
-const parseIntervalMinutes = inputValue => {
-  if (inputValue === undefined) {
-    return buildValidationError('intervalMinutes must not be empty');
-  }
-
-  const parsed = Number(inputValue);
-  if (!Number.isInteger(parsed)) {
-    return buildValidationError('intervalMinutes must be an integer value');
-  }
-
-  if (parsed < MIN_INTERVAL_MINUTES || parsed > MAX_INTERVAL_MINUTES) {
-    return buildValidationError(
-      `intervalMinutes must be between ${MIN_INTERVAL_MINUTES} and ${MAX_INTERVAL_MINUTES} minutes`
-    );
-  }
-
-  return { ok: true, value: parsed };
-};
-
-const validateAndParsingSettingPayload = (
-  payload,
-  { requireBothFields = false } = {}
-) => {
-  if (!payload || typeof payload !== 'object') {
-    return buildValidationError('Request body must include setting fields');
-  }
-
-  const fields = extractSettingFields(payload);
-  const presenceResult = ensureFieldPresence(fields, requireBothFields);
-  if (!presenceResult.ok) {
-    return presenceResult;
-  }
-
-  const receiveReminderResult = parseReceiveReminder(fields.receiveReminder);
-  if (!receiveReminderResult.ok) {
-    return receiveReminderResult;
-  }
-
-  const intervalMinutesResult = parseIntervalMinutes(fields.intervalMinutes);
-  if (!intervalMinutesResult.ok) {
-    return intervalMinutesResult;
-  }
-
-  return {
-    ok: true,
-    data: {
-      receiveReminder: receiveReminderResult.value,
-      intervalMinutes: intervalMinutesResult.value,
-    },
-  };
-};
-
 const mapSetting = setting => {
   if (!setting) return null;
   return {
@@ -176,17 +83,20 @@ class SettingController {
         return respondWithError(c, bodyResult.message, 400);
       }
 
-      const validation = validateAndParsingSettingPayload(bodyResult.payload, {
-        requireBothFields: true,
-      });
-      if (!validation.ok) {
-        return respondWithError(c, validation.message, 400);
+      const receiveReminder = this.getReceiveReminder(bodyResult.payload.receiveReminder);
+      if (!receiveReminder.ok) {
+        return respondWithError(c, receiveReminder.message, 400);
+      }
+
+      const intervalMinutes = this.getIntervalMinutes(bodyResult.payload.intervalMinutes);
+      if (!intervalMinutes.ok) {
+        return respondWithError(c, intervalMinutes.message, 400);
       }
 
       const result = await settingService.createSetting(
         userId,
-        validation.data.receiveReminder,
-        validation.data.intervalMinutes
+        receiveReminder.value,
+        intervalMinutes.value
       );
 
       if (!result.success) {
@@ -212,42 +122,6 @@ class SettingController {
       return respondWithError(
         c,
         'Internal server error while creating setting',
-        500
-      );
-    }
-  }
-
-  async createDefaultSetting(c) {
-    try {
-      const userId = ensureAuthenticatedUser(c);
-      if (!userId) return;
-
-      const result = await settingService.createDefaultSetting(userId);
-      if (!result.success) {
-        const status =
-          result.error === 'Setting already exists for this user'
-            ? 409
-            : 400;
-        return respondWithError(
-          c,
-          result.error || 'Failed to create default setting',
-          status
-        );
-      }
-
-      return c.json(
-        {
-          success: true,
-          message: 'Default setting created successfully',
-          setting: mapSetting(result.setting),
-        },
-        201
-      );
-    } catch (error) {
-      console.error('Error creating default setting:', error);
-      return respondWithError(
-        c,
-        'Internal server error while creating default setting',
         500
       );
     }
@@ -285,51 +159,43 @@ class SettingController {
     }
   }
 
-  async updateSetting(c) {
-    try {
-      const userId = ensureAuthenticatedUser(c);
-      if (!userId) return;
+  getReceiveReminder(inputValue) {
+    if (inputValue === undefined) {
+      return buildValidationError('receiveReminder must not be empty');
+    }
 
-      const bodyResult = await readJsonBody(c);
-      if (!bodyResult.ok) {
-        return respondWithError(c, bodyResult.message, 400);
-      }
+    const coerced = coerceBoolean(inputValue);
+    if (coerced === null) {
+      return buildValidationError('receiveReminder must be a boolean value');
+    }
 
-      const validation = validateAndParsingSettingPayload(bodyResult.payload, {
-        requireBothFields: true,
-      });
-      if (!validation.ok) {
-        return respondWithError(c, validation.message, 400);
-      }
+    return { ok: true, value: coerced };
+  }
 
-      const result = await settingService.updateSetting(
-        userId,
-        validation.data.receiveReminder,
-        validation.data.intervalMinutes
+  getIntervalMinutes(inputValue) {
+    if (inputValue === undefined) {
+      return buildValidationError('intervalMinutes must not be empty');
+    }
+
+    const parsed = Number(inputValue);
+    if (!Number.isInteger(parsed)) {
+      return buildValidationError('intervalMinutes must be an integer value');
+    }
+
+    if (parsed < MIN_INTERVAL_MINUTES || parsed > MAX_INTERVAL_MINUTES) {
+      return buildValidationError(
+        `intervalMinutes must be between ${MIN_INTERVAL_MINUTES} and ${MAX_INTERVAL_MINUTES} minutes`
       );
+    }
 
-      if (!result.success) {
-        const status =
-          result.error === 'Setting not found' ? 404 : 400;
-        return respondWithError(
-          c,
-          result.error || 'Failed to update setting',
-          status
-        );
-      }
+    return { ok: true, value: parsed };
+  }
 
-      return c.json({
-        success: true,
-        message: 'Setting updated successfully',
-        setting: mapSetting(result.setting),
-      });
-    } catch (error) {
-      console.error('Error updating setting:', error);
-      return respondWithError(
-        c,
-        'Internal server error while updating setting',
-        500
-      );
+  assignIfOk(target, key, result) {
+    if (result.ok) {
+      target[key] = result.value;
+    } else {
+      console.log(result.message);
     }
   }
 
@@ -343,14 +209,17 @@ class SettingController {
         return respondWithError(c, bodyResult.message, 400);
       }
 
-      const validation = validateAndParsingSettingPayload(bodyResult.payload);
-      if (!validation.ok) {
-        return respondWithError(c, validation.message, 400);
+      const updateData = {};
+      this.assignIfOk(updateData, "receiveReminder", this.getReceiveReminder(bodyResult.payload.receiveReminder));
+      this.assignIfOk(updateData, "intervalMinutes", this.getIntervalMinutes(bodyResult.payload.intervalMinutes));
+
+      if (Object.keys(updateData).length === 0) {
+        return respondWithError(c, "No fields to update.", 400);
       }
 
       const result = await settingService.partialUpdate(
         userId,
-        validation.data
+        updateData
       );
 
       if (!result.success) {
@@ -378,35 +247,6 @@ class SettingController {
     }
   }
 
-  async deleteSetting(c) {
-    try {
-      const userId = ensureAuthenticatedUser(c);
-      if (!userId) return;
-
-      const result = await settingService.deleteSetting(userId);
-      if (!result.success) {
-        const status =
-          result.error === 'Setting not found' ? 404 : 400;
-        return respondWithError(
-          c,
-          result.error || 'Failed to delete setting',
-          status
-        );
-      }
-
-      return c.json({
-        success: true,
-        message: 'Setting deleted successfully',
-      });
-    } catch (error) {
-      console.error('Error deleting setting:', error);
-      return respondWithError(
-        c,
-        'Internal server error while deleting setting',
-        500
-      );
-    }
-  }
 }
 
 export default new SettingController();

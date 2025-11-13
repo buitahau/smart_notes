@@ -9,7 +9,8 @@ const DEFAULT_SETTING = {
 class SettingService {
   async createSetting(userId, receiveReminder, intervalMinutes) {
     try {
-      const existing = await settingRepository.getByUserId(userId);
+      const existing = await settingRepository.existingByUserId(userId);
+      console.log(existing);
       if (existing) {
         return {
           success: false,
@@ -26,6 +27,7 @@ class SettingService {
 
       return { success: true, setting };
     } catch (error) {
+      console.log(error)
       return {
         success: false,
         error: error.message,

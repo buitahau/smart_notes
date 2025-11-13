@@ -49,6 +49,13 @@ PORT=3000
    npx drizzle-kit migrate
    ```
 
+#### Apply Changes
+
+1. **Run**:
+   ```bash
+   npx drizzle-kit push
+   ```
+
 #### Schema Configuration
 
 - Schema files are located in `src/database/schema/`
