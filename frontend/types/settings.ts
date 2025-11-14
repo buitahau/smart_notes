@@ -1,10 +1,10 @@
-export interface NotificationSettings {
-  enabled: boolean;
+export interface AppSettings {
+  receiveReminder: boolean;
   intervalMinutes: number;
 }
 
-export interface NotificationSettingsResponse {
+export interface AppSettingsResponse {
   success: boolean;
   message?: string;
-  data?: NotificationSettings;
+  data?: AppSettings;
 }

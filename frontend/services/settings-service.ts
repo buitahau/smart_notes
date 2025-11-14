@@ -1,45 +1,52 @@
 import apiClient from './api-client';
-import { API_ENDPOINTS, DEFAULT_NOTIFICATION_SETTINGS } from '@utils/constants';
-import { NotificationSettings, NotificationSettingsResponse } from '@types/settings';
-
-const normalizeSettings = (settings?: NotificationSettings | null): NotificationSettings => {
-  if (!settings) {
-    return { ...DEFAULT_NOTIFICATION_SETTINGS };
-  }
-
-  const interval = Number(settings.intervalMinutes) || DEFAULT_NOTIFICATION_SETTINGS.intervalMinutes;
-
-  return {
-    enabled: Boolean(settings.enabled),
-    intervalMinutes: Math.max(1, interval),
-  };
-};
+import { API_ENDPOINTS, DEFAULT_SETTINGS } from '@utils/constants';
+import { AppSettings, AppSettingsResponse } from '@types/settings';
 
 class SettingsService {
-  async getNotificationSettings(): Promise<NotificationSettings> {
-    const response = await apiClient.get<NotificationSettingsResponse>(
-      API_ENDPOINTS.SETTINGS.NOTIFICATIONS
-    );
+  async get(): Promise<AppSettings> {
+    const response = await apiClient.get<AppSettingsResponse>(API_ENDPOINTS.SETTINGS);
 
     if (!response.data.success) {
-      throw new Error(response.data.message || 'Failed to fetch notification settings');
+      throw new Error(response.data.message || 'Failed to fetch settings');
     }
 
-    return normalizeSettings(response.data.data);
+    const defaults = DEFAULT_SETTINGS.NOTIFICATION;
+    const payload = response.data.data;
+
+    if (!payload) {
+      return { ...defaults };
+    }
+
+    const interval = Number(payload.intervalMinutes) || defaults.intervalMinutes;
+
+    return {
+      receiveReminder: Boolean(payload.receiveReminder),
+      intervalMinutes: Math.max(1, interval),
+    };
   }
 
-  async updateNotificationSettings(payload: NotificationSettings): Promise<NotificationSettings> {
-    const response = await apiClient.put<NotificationSettingsResponse>(
-      API_ENDPOINTS.SETTINGS.NOTIFICATIONS,
-      payload
-    );
+  async update(payload: AppSettings): Promise<AppSettings> {
+    const response = await apiClient.put<AppSettingsResponse>(API_ENDPOINTS.SETTINGS, payload);
 
     if (!response.data.success) {
-      throw new Error(response.data.message || 'Failed to update notification settings');
+      throw new Error(response.data.message || 'Failed to update settings');
     }
 
-    return normalizeSettings(response.data.data ?? payload);
+    const defaults = DEFAULT_SETTINGS.NOTIFICATION;
+    const next = response.data.data ?? payload ?? defaults;
+
+    if (!next) {
+      return { ...defaults };
+    }
+
+    const interval = Number(next.intervalMinutes) || defaults.intervalMinutes;
+
+    return {
+      receiveReminder: Boolean(next.receiveReminder),
+      intervalMinutes: Math.max(1, interval),
+    };
   }
+
 }
 
 export const settingsService = new SettingsService();

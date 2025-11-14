@@ -3,16 +3,18 @@ import { ArrowLeft as ArrowLeftIcon, Bell as BellIcon, Clock as ClockIcon } from
 import { useMiniRouter } from '@context/router-context';
 import { settingsService } from '@services/settings-service';
 import { storage } from '@utils/storage';
-import { DEFAULT_NOTIFICATION_SETTINGS, STORAGE_KEYS } from '@utils/constants';
-import type { NotificationSettings } from '@types/settings';
+import { DEFAULT_SETTINGS, STORAGE_KEYS } from '@utils/constants';
+import type { AppSettings } from '@types/settings';
+import { styles } from './styles';
 
 const MIN_INTERVAL = 1;
 const MAX_INTERVAL = 720;
 const SAVE_DEBOUNCE_MS = 600;
 
 const clampInterval = (value: number) => {
+  const defaults = DEFAULT_SETTINGS.NOTIFICATION;
   if (Number.isNaN(value)) {
-    return DEFAULT_NOTIFICATION_SETTINGS.intervalMinutes;
+    return defaults.intervalMinutes;
   }
   return Math.min(Math.max(value, MIN_INTERVAL), MAX_INTERVAL);
 };
@@ -20,21 +22,20 @@ const clampInterval = (value: number) => {
 export const Settings: React.FC = () => {
   const { navigate } = useMiniRouter();
 
-  const [settings, setSettings] = useState<NotificationSettings>({
-    ...DEFAULT_NOTIFICATION_SETTINGS,
+  const defaults = DEFAULT_SETTINGS.NOTIFICATION;
+  const [settings, setSettings] = useState<AppSettings>({
+    ...defaults,
   });
-  const [intervalInput, setIntervalInput] = useState(
-    DEFAULT_NOTIFICATION_SETTINGS.intervalMinutes.toString()
-  );
+  const [intervalInput, setIntervalInput] = useState(defaults.intervalMinutes.toString());
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
-  const [pendingSettings, setPendingSettings] = useState<NotificationSettings | null>(null);
+  const [pendingSettings, setPendingSettings] = useState<AppSettings | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const intervalDescription = useMemo(() => {
-    if (!settings.enabled) {
+    if (!settings.receiveReminder) {
       return 'Notifications are disabled';
     }
     const minutes = settings.intervalMinutes;
@@ -43,28 +44,28 @@ export const Settings: React.FC = () => {
     }
     const hours = (minutes / 60).toFixed(1);
     return `About every ${hours.endsWith('.0') ? hours.slice(0, -2) : hours} hours`;
-  }, [settings.enabled, settings.intervalMinutes]);
+  }, [settings.receiveReminder, settings.intervalMinutes]);
 
-  const persistLocally = useCallback(async (payload: NotificationSettings) => {
-    await storage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, payload);
+  const persistLocally = useCallback(async (payload: AppSettings) => {
+    await storage.set(STORAGE_KEYS.SETTINGS, payload);
   }, []);
 
   useEffect(() => {
     const loadSettings = async () => {
       setIsLoading(true);
       try {
-        const response = await settingsService.getNotificationSettings();
+        const response = await settingsService.get();
         setSettings(response);
         setIntervalInput(response.intervalMinutes.toString());
         await persistLocally(response);
       } catch (err) {
-        const fallback = { ...DEFAULT_NOTIFICATION_SETTINGS };
+        const fallback = { ...defaults };
         setSettings(fallback);
         setIntervalInput(fallback.intervalMinutes.toString());
         setError(
           err instanceof Error
             ? err.message
-            : 'Unable to load notification settings. Using defaults.'
+            : 'Unable to load settings. Using defaults.'
         );
         await persistLocally(fallback);
       } finally {
@@ -74,21 +75,21 @@ export const Settings: React.FC = () => {
     };
 
     loadSettings();
-  }, [persistLocally]);
+  }, [persistLocally, defaults]);
 
   const saveSettings = useCallback(
-    async (payload: NotificationSettings) => {
+    async (payload: AppSettings) => {
       setIsSaving(true);
       setError(null);
       try {
-        const updated = await settingsService.updateNotificationSettings(payload);
+        const updated = await settingsService.update(payload);
         setSettings(updated);
         setIntervalInput(updated.intervalMinutes.toString());
         await persistLocally(updated);
         setStatusMessage('Settings saved');
         setTimeout(() => setStatusMessage(null), 1500);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save notification settings');
+        setError(err instanceof Error ? err.message : 'Failed to save settings');
       } finally {
         setIsSaving(false);
       }
@@ -114,7 +115,7 @@ export const Settings: React.FC = () => {
 
     const next = {
       ...settings,
-      enabled: !settings.enabled,
+      receiveReminder: !settings.receiveReminder,
     };
     setSettings(next);
     setPendingSettings(next);
@@ -177,18 +178,18 @@ export const Settings: React.FC = () => {
             <button
               style={{
                 ...styles.toggle,
-                ...(settings.enabled ? styles.toggleActive : {}),
+                ...(settings.receiveReminder ? styles.toggleActive : {}),
                 ...(isLoading ? styles.toggleDisabled : {}),
               }}
               onClick={handleToggleNotifications}
               role="switch"
-              aria-checked={settings.enabled}
+              aria-checked={settings.receiveReminder}
               disabled={isLoading}
             >
               <div
                 style={{
                   ...styles.toggleThumb,
-                  ...(settings.enabled ? styles.toggleThumbActive : {}),
+                  ...(settings.receiveReminder ? styles.toggleThumbActive : {}),
                 }}
               />
             </button>
@@ -206,10 +207,10 @@ export const Settings: React.FC = () => {
               value={intervalInput}
               onChange={(e) => handleIntervalChange(e.target.value)}
               onBlur={handleIntervalBlur}
-              disabled={!settings.enabled || isLoading}
+              disabled={!settings.receiveReminder || isLoading}
               style={{
                 ...styles.intervalInput,
-                ...(!settings.enabled ? styles.intervalInputDisabled : {}),
+                ...(!settings.receiveReminder ? styles.intervalInputDisabled : {}),
               }}
               placeholder={`Between ${MIN_INTERVAL} and ${MAX_INTERVAL}`}
             />
@@ -229,187 +230,4 @@ export const Settings: React.FC = () => {
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    height: '100vh',
-    width: '100%',
-    maxWidth: '400px',
-    backgroundColor: '#ffffff',
-    borderRadius: '12px',
-    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    overflow: 'hidden',
-    fontFamily:
-      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '20px 24px',
-    background: 'linear-gradient(135deg, #4c6ef5 0%, #6c5ce7 100%)',
-    color: 'white',
-  },
-  backButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '40px',
-    height: '40px',
-    borderRadius: '10px',
-    border: 'none',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    color: 'white',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  title: {
-    fontSize: '18px',
-    fontWeight: 700,
-    margin: 0,
-    color: 'white',
-    letterSpacing: '-0.01em',
-  },
-  headerSpacer: {
-    width: '40px',
-  },
-  content: {
-    flex: 1,
-    padding: '24px',
-    backgroundColor: '#f9fafb',
-    position: 'relative' as const,
-  },
-  section: {
-    backgroundColor: 'white',
-    borderRadius: '16px',
-    padding: '20px',
-    boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1)',
-    border: '1px solid #eef2ff',
-  },
-  sectionHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    marginBottom: '16px',
-  },
-  sectionIcon: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '12px',
-    backgroundColor: '#eef2ff',
-    color: '#4f46e5',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sectionTitle: {
-    margin: 0,
-    fontSize: '16px',
-    fontWeight: 600,
-    color: '#111827',
-  },
-  sectionSubtitle: {
-    margin: 0,
-    fontSize: '13px',
-    color: '#6b7280',
-  },
-  toggle: {
-    marginLeft: 'auto',
-    width: '48px',
-    height: '26px',
-    borderRadius: '999px',
-    // border: '1px solid #e5e7eb',
-    backgroundColor: '#e5e7eb',
-    display: 'flex',
-    alignItems: 'center',
-    padding: '0 3px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  toggleActive: {
-    backgroundColor: '#4f46e5',
-    // borderColor: '#4f46e5',
-  },
-  toggleDisabled: {
-    opacity: 0.5,
-    cursor: 'not-allowed',
-  },
-  toggleThumb: {
-    width: '20px',
-    height: '20px',
-    borderRadius: '50%',
-    backgroundColor: 'white',
-    transition: 'transform 0.2s ease',
-    transform: 'translateX(0px)',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
-  },
-  toggleThumbActive: {
-    transform: 'translateX(20px)',
-  },
-  intervalWrapper: {
-    marginTop: '16px',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '8px',
-  },
-  intervalLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '13px',
-    fontWeight: 600,
-    color: '#374151',
-  },
-  intervalInput: {
-    padding: '12px 14px',
-    borderRadius: '12px',
-    border: '1px solid #d1d5db',
-    fontSize: '15px',
-    fontWeight: 500,
-    outline: 'none',
-    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-    boxShadow: '0 2px 4px rgba(15, 23, 42, 0.08)',
-  },
-  intervalInputDisabled: {
-    backgroundColor: '#f3f4f6',
-    color: '#9ca3af',
-    cursor: 'not-allowed',
-    boxShadow: 'none',
-  },
-  intervalHelper: {
-    margin: 0,
-    fontSize: '12px',
-    color: '#6b7280',
-  },
-  footer: {
-    marginTop: '16px',
-    minHeight: '20px',
-  },
-  savingText: {
-    fontSize: '12px',
-    color: '#6b7280',
-  },
-  successText: {
-    fontSize: '12px',
-    color: '#059669',
-  },
-  errorText: {
-    fontSize: '12px',
-    color: '#dc2626',
-  },
-  loadingOverlay: {
-    position: 'absolute' as const,
-    inset: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(249, 250, 251, 0.8)',
-    fontSize: '14px',
-    fontWeight: 500,
-    color: '#4b5563',
-    borderRadius: '16px',
-  },
 };

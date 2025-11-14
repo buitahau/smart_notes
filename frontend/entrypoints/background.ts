@@ -1,8 +1,8 @@
 import { defineBackground } from 'wxt/sandbox';
-import { DEFAULT_NOTIFICATION_SETTINGS, STORAGE_KEYS } from '@utils/constants';
+import { DEFAULT_SETTINGS, STORAGE_KEYS } from '@utils/constants';
 import { storage } from '@utils/storage';
 import type { Note } from '@services/note-service';
-import type { NotificationSettings } from '@types/settings';
+import type { AppSettings } from '@types/settings';
 
 type BackgroundMessage = {
   type: string;
@@ -20,14 +20,13 @@ type StoredMessage = {
 
 const NOTIFICATION_ALARM_NAME = 'smart_note_task_notification';
 
-const getStoredNotificationSettings = async (): Promise<NotificationSettings> => {
-  const stored =
-    (await storage.get<NotificationSettings>(STORAGE_KEYS.NOTIFICATION_SETTINGS)) ??
-    DEFAULT_NOTIFICATION_SETTINGS;
+const getStoredNotificationSettings = async (): Promise<AppSettings> => {
+  const defaults = DEFAULT_SETTINGS.NOTIFICATION;
+  const stored = (await storage.get<AppSettings>(STORAGE_KEYS.SETTINGS)) ?? defaults;
 
   return {
-    enabled: stored.enabled ?? DEFAULT_NOTIFICATION_SETTINGS.enabled,
-    intervalMinutes: Math.max(1, stored.intervalMinutes ?? DEFAULT_NOTIFICATION_SETTINGS.intervalMinutes),
+    receiveReminder: stored.receiveReminder ?? defaults.receiveReminder,
+    intervalMinutes: Math.max(1, stored.intervalMinutes ?? defaults.intervalMinutes),
   };
 };
 
@@ -36,7 +35,7 @@ const syncReminderAlarm = async () => {
 
   const settings = await getStoredNotificationSettings();
 
-  if (!settings.enabled) {
+  if (!settings.receiveReminder) {
     chrome.alarms.clear(NOTIFICATION_ALARM_NAME);
     return;
   }
@@ -73,7 +72,7 @@ const truncateContent = (content: string) => {
 const showTaskReminderNotification = async () => {
   try {
     const settings = await getStoredNotificationSettings();
-    if (!settings.enabled) {
+    if (!settings.receiveReminder) {
       return;
     }
 
@@ -120,7 +119,7 @@ export default defineBackground(() => {
       return;
     }
 
-    if (STORAGE_KEYS.NOTIFICATION_SETTINGS in changes) {
+    if (STORAGE_KEYS.SETTINGS in changes) {
       void syncReminderAlarm();
     }
   });
