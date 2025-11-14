@@ -130,3 +130,90 @@ This backend has been successfully migrated from Express.js to Hono framework. K
 - Modern middleware system
 - Simplified routing syntax
 - Built-in CORS and logging middleware
+
+## Registration Flow
+**1. User submits registration info → Backend**
+
+The user enters their email and other required information in the extension or UI.
+The client sends this data to the backend’s /api/register endpoint.
+
+**2. Backend registers with IAM → receives IAM user ID**
+
+The backend sends a request to the IAM service to create a new identity record.
+IAM returns an iam_user_id upon success.
+
+**3. Backend stores the user as PendingVerification**
+
+The backend creates a user record in its database with:
+
+status = PendingVerification
+
+iam_id = <IAM user ID>
+
+any other initial fields (email, profile info, metadata)
+
+**4. IAM sends the verification email**
+
+IAM generates a verification email and sends it to the user.
+The email contains a verification link managed by IAM.
+
+**5. User clicks IAM’s email verification link**
+
+When the user clicks the verification link, IAM receives the request and starts the verification process.
+
+**6. IAM confirms verification internally**
+
+IAM validates the email verification token and marks the user as verified inside IAM.
+
+**7. IAM redirects the user to your backend with a short-lived JWT**
+
+After verification, IAM redirects the user's browser to your backend’s confirmation endpoint, e.g. /auth/iam/callback, and includes:
+
+a short-lived, signed JWT containing user identity claims (e.g., iam_user_id, email)
+
+**8. Backend verifies the token signature and expiry**
+
+The backend validates:
+
+the JWT’s signature (using IAM’s public key)
+
+token expiry
+
+integrity of claims
+
+If valid, the backend proceeds.
+
+**9. Backend activates the user and initializes default settings**
+
+The backend:
+
+sets status = Active
+
+generates default resources/settings (e.g., preferences, onboarding data)
+
+logs the activation event for auditing
+
+**10. Backend redirects the user to the final “Welcome” UI**
+
+After activation, the backend redirects the user to a success screen such as:
+
+/welcome
+
+or the extension/UI home page
+
+The user is now fully registered and activated.
+
+## SSO Registration Flow
+**1. User chooses "Continue with Google/Facebook" on your web page**
+
+**2. Frontend redirects user to IAM’s SSO endpoint**
+
+**3. Google/Facebook authenticates the user**
+
+**4. IAM verifies the identity and creates an IAM user**
+
+**5. IAM redirects user to your backend with a short-lived JWT**
+
+**7. Backend creates a new user if not exist**
+
+**8.Activates the user and initializes default settings**

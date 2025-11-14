@@ -109,6 +109,8 @@ class UserService {
         email,
         firstName: normalizeString(payload.firstName) ?? '',
         lastName: normalizeString(payload.lastName) ?? '',
+        status:
+          typeof payload.status === 'boolean' ? payload.status : false,
       });
 
       return { success: true, user };
@@ -130,6 +132,9 @@ class UserService {
       return { success: false, error: error.message };
     }
   }
+
 }
 
-export default new UserService();
+const userService = new UserService();
+
+export default userService;

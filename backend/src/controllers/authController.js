@@ -1,4 +1,5 @@
 import authService from '../services/authService.js';
+import userService from '../services/userService.js';
 
 class AuthController {
   async login(c) {
@@ -45,13 +46,13 @@ class AuthController {
 
   async register(c) {
     try {
-      const { email, password } = await c.req.json();
+      const { email, password, firstName, lastName } = await c.req.json();
 
       if (!email || !password) {
         return c.json(
           {
             success: false,
-            message: 'Email and password are required',
+            message: 'Email, password, first name, and last name are required',
           },
           400
         );
@@ -69,10 +70,38 @@ class AuthController {
         );
       }
 
+      if (!result.user?.id) {
+        return c.json(
+          {
+            success: false,
+            message: 'Failed to retrieve user information after sign up',
+          },
+          500
+        );
+      }
+
+      const localUser = await userService.createUser(result.user.id, {
+        email,
+        firstName,
+        lastName,
+        status: false,
+      });
+
+      if (!localUser.success) {
+        return c.json(
+          {
+            success: false,
+            message: localUser.error ?? 'Failed to create local user profile',
+          },
+          500
+        );
+      }
+
       return c.json(
         {
           success: true,
           user: result.user,
+          profile: localUser.user,
           session: result.session,
         },
         201

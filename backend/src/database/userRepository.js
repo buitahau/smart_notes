@@ -25,6 +25,7 @@ export const userRepository = {
         firstName: userData.firstName ?? '',
         lastName: userData.lastName ?? '',
         email: userData.email,
+        status: userData.status ?? true,
       })
       .returning();
 
@@ -54,6 +55,9 @@ export const userRepository = {
 
     if (updateData.email !== undefined) {
       updateValues.email = updateData.email;
+    }
+    if (updateData.status !== undefined) {
+      updateValues.status = updateData.status;
     }
 
     const [updated] = await db
