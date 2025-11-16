@@ -217,3 +217,62 @@ The user is now fully registered and activated.
 **7. Backend creates a new user if not exist**
 
 **8.Activates the user and initializes default settings**
+
+### Sequence Diagram
+    autonumber
+
+    participant User
+
+    participant Extension
+
+    participant LandingPage as Landing Page (Web)
+
+    participant BE as Backend
+
+    participant Supabase
+    
+    participant DB as App Database
+
+    %% ========== PART 1: USER REGISTERS VIA LANDING PAGE (SSO) ==========
+    User ->> LandingPage: Click "Continue with Google/Facebook"
+    LandingPage ->> Supabase: Redirect to SSO Provider
+    Supabase ->> Google/Facebook: Authenticate User
+    Google/Facebook ->> Supabase: Return Auth Token
+    Supabase ->> Supabase: Create/Update user in auth.users
+    Supabase -->> LandingPage: Redirect with session(access_token)
+
+    LandingPage ->> BE: Send Supabase access_token
+    BE ->> Supabase: Validate access_token via /auth/v1/user
+    Supabase -->> BE: Return user metadata
+
+    BE ->> DB: Create/update app user (Active)
+    BE -->> LandingPage: Return app session token
+    LandingPage ->> User: User logged in on Web
+
+    %% ========== PART 2: USER LOGIN IN EXTENSION (OTP METHOD) ==========
+    User ->> Extension: Enter email
+
+    Extension ->> BE: /auth/request-otp (email)
+    BE ->> Supabase: Call /auth/v1/otp (send OTP)
+    Supabase -->> User: Email OTP
+
+    User ->> Extension: Enter OTP
+    Extension ->> BE: /auth/verify-otp (email + otp)
+    BE ->> Supabase: Call /auth/v1/verify (email + otp)
+    Supabase -->> BE: Return supabase access_token
+
+    %% ========== PART 3: BACKEND ACTIVATION + SESSION CREATION ==========
+    BE ->> Supabase: /auth/v1/user (verify token)
+    Supabase -->> BE: Return user identity
+
+    BE ->> DB: Create/update app user (Active)
+    BE ->> BE: Generate app session token
+    BE -->> Extension: Return app session token
+
+    Extension ->> Extension: Save token in chrome.storage
+    Extension ->> User: Logged in inside extension
+
+    %% ========== PART 4: USING AUTHENTICATED APIS ==========
+    Extension ->> BE: API call with app session token
+    BE ->> DB: Validate session + fetch user data
+    BE -->> Extension: Return API response

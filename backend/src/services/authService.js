@@ -1,11 +1,35 @@
 import supabase from '../config/supabase.js';
 
 class AuthService {
-  async signIn(email, password) {
+
+  async signInWithOtp(email) {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
-        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  async verifyOtp(email, token) {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
       });
 
       if (error) {
@@ -25,29 +49,6 @@ class AuthService {
     }
   }
 
-  async signUp(email, password) {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      return {
-        success: true,
-        user: data.user,
-        session: data.session,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
-  }
 
   async signOut(accessToken) {
     try {

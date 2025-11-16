@@ -3,8 +3,8 @@ import authController from '../controllers/authController.js';
 
 const router = new Hono();
 
-router.post('/login', authController.login);
-router.post('/register', authController.register);
+router.post('/otp', authController.signInWithOtp);
+router.post('/otp/verify', authController.verifyOtp);
 router.post('/logout', authController.logout);
 router.get('/validate', authController.validateToken);
 

@@ -1,12 +1,11 @@
 export interface LoginFormData {
   email: string;
-  password: string;
-  rememberMe: boolean;
+  otp: string;
 }
 
 export interface LoginErrors {
   email?: string;
-  password?: string;
+  otp?: string;
   general?: string;
 }
 
@@ -35,4 +34,9 @@ export interface UserDetails {
 export interface NotificationMessageProps {
   type: 'success' | 'error';
   message: string;
+}
+
+export interface OtpRequestResponse {
+  success: boolean;
+  error?: string | null;
 }

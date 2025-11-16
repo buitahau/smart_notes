@@ -6,6 +6,7 @@ import {
   ValidateTokenResponse,
   UserDetails,
   NotificationMessageProps,
+  OtpRequestResponse,
 } from './login';
 
 export type {
@@ -16,4 +17,5 @@ export type {
   ValidateTokenResponse,
   UserDetails,
   NotificationMessageProps,
+  OtpRequestResponse,
 };

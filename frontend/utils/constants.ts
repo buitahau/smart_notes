@@ -6,6 +6,7 @@ export const STORAGE_KEYS = {
   TOKEN: 'smart_note_token',
   CHAT_MESSAGES: 'smart_note_chat_messages',
   SETTINGS: 'smart_note_settings',
+  PENDING_OTP_LOGIN: 'smart_note_pending_otp_login',
 } as const;
 
 /**
@@ -15,6 +16,8 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
+    LOGIN_OTP: '/api/auth/otp',
+    VERIFY_OTP: '/api/auth/otp/verify',
     VALIDATE: '/api/auth/validate',
     LOGOUT: '/api/auth/logout',
   },

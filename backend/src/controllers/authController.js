@@ -1,22 +1,62 @@
 import authService from '../services/authService.js';
-import userService from '../services/userService.js';
 
 class AuthController {
-  async login(c) {
+  async signInWithOtp(c) {
     try {
-      const { email, password } = await c.req.json();
+      const { email } = await c.req.json();
 
-      if (!email || !password) {
+      if (!email) {
         return c.json(
           {
             success: false,
-            message: 'Email and password are required',
+            message: 'Email is required',
           },
           400
         );
       }
 
-      const result = await authService.signIn(email, password);
+      const result = await authService.signInWithOtp(email);
+
+      if (!result.success) {
+        return c.json(
+          {
+            success: false,
+            message: result.error,
+          },
+          400
+        );
+      }
+
+      return c.json({
+        success: true,
+        message: 'OTP sent successfully',
+      });
+    } catch (error) {
+      return c.json(
+        {
+          success: false,
+          message: 'Internal server error',
+        },
+        500
+      );
+    }
+  }
+
+  async verifyOtp(c) {
+    try {
+      const { email, token } = await c.req.json();
+
+      if (!email || !token) {
+        return c.json(
+          {
+            success: false,
+            message: 'Email and token are required',
+          },
+          400
+        );
+      }
+
+      const result = await authService.verifyOtp(email, token);
 
       if (!result.success) {
         return c.json(
@@ -33,79 +73,6 @@ class AuthController {
         user: result.user,
         session: result.session,
       });
-    } catch (error) {
-      return c.json(
-        {
-          success: false,
-          message: 'Internal server error',
-        },
-        500
-      );
-    }
-  }
-
-  async register(c) {
-    try {
-      const { email, password, firstName, lastName } = await c.req.json();
-
-      if (!email || !password) {
-        return c.json(
-          {
-            success: false,
-            message: 'Email, password, first name, and last name are required',
-          },
-          400
-        );
-      }
-
-      const result = await authService.signUp(email, password);
-
-      if (!result.success) {
-        return c.json(
-          {
-            success: false,
-            message: result.error,
-          },
-          400
-        );
-      }
-
-      if (!result.user?.id) {
-        return c.json(
-          {
-            success: false,
-            message: 'Failed to retrieve user information after sign up',
-          },
-          500
-        );
-      }
-
-      const localUser = await userService.createUser(result.user.id, {
-        email,
-        firstName,
-        lastName,
-        status: false,
-      });
-
-      if (!localUser.success) {
-        return c.json(
-          {
-            success: false,
-            message: localUser.error ?? 'Failed to create local user profile',
-          },
-          500
-        );
-      }
-
-      return c.json(
-        {
-          success: true,
-          user: result.user,
-          profile: localUser.user,
-          session: result.session,
-        },
-        201
-      );
     } catch (error) {
       return c.json(
         {

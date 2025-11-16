@@ -1,6 +1,7 @@
 import { Inngest } from 'inngest';
 
 export const inngest = new Inngest({
+  id: "smart-note-backend",
   name: 'Smart Notes Backend',
 });
 

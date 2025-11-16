@@ -1,24 +1,54 @@
 import { SignupFormData, SignUpResponse } from '@types/signup';
-import { LoginFormData, LoginResponse, UserDetails, ValidateTokenResponse } from '@types/login';
+import {
+  LoginFormData,
+  LoginResponse,
+  UserDetails,
+  ValidateTokenResponse,
+  OtpRequestResponse,
+} from '@types/login';
 import { storage } from '@utils/storage';
 import { handleApiError } from '@utils/error-handler';
 import { STORAGE_KEYS, API_ENDPOINTS } from '@utils/constants';
 import apiClient from './api-client';
 import { LogoutResponse } from '@types/login';
 
-export const signIn = async (payload: LoginFormData): Promise<LoginResponse> => {
+export const signInWithOtp = async (email: string): Promise<OtpRequestResponse> => {
   try {
-    const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload);
+    const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN_OTP, { email });
+    const data = response.data;
+
+    if (!data.success) {
+      return {
+        success: false,
+        error: data.message || 'Failed to send verification code',
+      };
+    }
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: handleApiError(error),
+    };
+  }
+};
+
+export const verifyOtp = async (payload: LoginFormData): Promise<LoginResponse> => {
+  try {
+    const response = await apiClient.post(API_ENDPOINTS.AUTH.VERIFY_OTP, {
+      email: payload.email,
+      token: payload.otp,
+    });
     const data = response.data;
 
     if (!data.success) {
       return {
         username: null,
-        error: data.message || 'Login failed',
+        error: data.message || 'Invalid or expired code',
       };
     }
-
-    console.log('Login successfully.');
 
     const username = await updateStorage(data);
 

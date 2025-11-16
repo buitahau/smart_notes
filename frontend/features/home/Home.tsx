@@ -146,11 +146,6 @@ export const Home: React.FC = () => {
     setShowUserMenu(false);
   };
 
-  const handleChangePassword = () => {
-    navigate('change-password');
-    setShowUserMenu(false);
-  };
-
   const handleLogout = async () => {
     await storage.clear();
     await logout();
@@ -330,7 +325,6 @@ export const Home: React.FC = () => {
         onToggleUserMenu={toggleUserMenu}
         onProfile={handleProfile}
         onSettings={handleSettings}
-        onChangePassword={handleChangePassword}
         onLogout={handleLogout}
         onCreateNote={handleCreateNote}
         userMenuRef={userMenuRef}

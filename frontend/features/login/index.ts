@@ -1,9 +1,9 @@
 import { LoginHeader } from './login-header';
-import { LoginFooter } from './login-footer';
 import { InputField } from './input-field';
 import { ErrorMessage } from './error-message';
 import { NotificationMessage } from './notification-message';
+import { OtpInput } from './otp-input';
 
-export { LoginHeader, LoginFooter, InputField, ErrorMessage, NotificationMessage };
+export { LoginHeader, InputField, ErrorMessage, NotificationMessage, OtpInput };
 
 export * from './hooks';
