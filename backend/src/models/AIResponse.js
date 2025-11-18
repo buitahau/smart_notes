@@ -69,5 +69,5 @@ export {
   TaskListResponse,
   DateLookupResponse,
   ClassificationResponse,
-  AIResponseFactory
+  AIResponseFactory,
 };

@@ -3,7 +3,6 @@ export const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
-    maxHeight: '600px',
     width: '100%',
     maxWidth: '400px',
     backgroundColor: '#ffffff',
@@ -54,7 +53,7 @@ export const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'flex-end',
     gap: '12px',
-    maxWidth: '75%',
+    maxWidth: '100%',
     animation: 'slideIn 0.3s ease-out',
   },
   messageWrapperAI: {
@@ -62,6 +61,7 @@ export const styles: { [key: string]: React.CSSProperties } = {
     marginLeft: '0',
     marginRight: 'auto',
     animation: 'slideInLeft 0.3s ease-out',
+    width: '100%',
   },
   messageWrapperUser: {
     alignSelf: 'flex-end',
@@ -99,6 +99,7 @@ export const styles: { [key: string]: React.CSSProperties } = {
     padding: '14px 18px',
     borderRadius: '18px',
     maxWidth: '100%',
+    width: '100%',
     position: 'relative' as React.CSSProperties['position'],
     fontSize: '14px',
     lineHeight: '1.5',
@@ -183,7 +184,7 @@ export const styles: { [key: string]: React.CSSProperties } = {
     letterSpacing: '0.01em',
   },
   sendButton: {
-    display: 'flex',
+    display: 'grid',
     alignItems: 'center',
     justifyContent: 'center',
     width: '36px',
@@ -236,7 +237,6 @@ export const styles: { [key: string]: React.CSSProperties } = {
   userMenu: {
     position: 'absolute' as React.CSSProperties['position'],
     top: '100%',
-    right: '0',
     marginTop: '8px',
     backgroundColor: '#ffffff',
     borderRadius: '12px',
@@ -244,6 +244,7 @@ export const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #f0f0f0',
     minWidth: '160px',
     overflow: 'hidden',
+    zIndex: 50,
   },
   menuItem: {
     display: 'flex',
@@ -318,6 +319,36 @@ export const styles: { [key: string]: React.CSSProperties } = {
     color: '#374151',
     fontWeight: '400',
     letterSpacing: '0.01em',
+  },
+  noteCardIcon: {
+    width: '16px',
+    height: '16px',
+    color: 'white',
+  },
+  noteCardButtonContainer: {
+    display: 'flex',
+    gap: '8px',
+    marginTop: '12px',
+  },
+  noteCardButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+  },
+  completeButton: {
+    backgroundColor: '#22c55e', // green
+  },
+  editButton: {
+    backgroundColor: '#3b82f6', // blue
+  },
+  deleteButton: {
+    backgroundColor: '#ef4444', // red
   },
   notesHeader: {
     display: 'flex',

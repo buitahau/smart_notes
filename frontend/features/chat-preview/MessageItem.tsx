@@ -8,13 +8,12 @@ interface MessageItemProps {
 }
 
 export const MessageItem: React.FC<MessageItemProps> = ({ message, isPreview = false }) => {
-  const timeString = message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const timeString = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const isAI = message.type === 'ai';
 
   const previewStyles = isPreview ? {
     messageWrapper: {
       ...styles.messageWrapper,
-      padding: '8px 12px',
       marginBottom: '8px',
       backgroundColor: isAI ? '#f8fafc' : '#f3f4f6',
       borderRadius: '8px',

@@ -4,10 +4,11 @@ import { API_ENDPOINTS } from '@utils/constants';
 export interface Note {
   id: string;
   content: string;
-  date?: string;
+  dateAt: string;
   createdAt: string;
   updatedAt: string;
   userId: string;
+  status?: 'pending' | 'completed';
 }
 
 export interface CreateNoteRequest {

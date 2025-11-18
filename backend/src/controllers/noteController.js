@@ -1,113 +1,145 @@
 import noteService from '../services/noteService.js';
 
+const MAX_NOTE_LENGTH = 10000;
+const ONE_YEAR_IN_FUTURE = () => {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() + 1);
+  return date;
+};
+
+const buildValidationError = (message, status = 400) => ({
+  ok: false,
+  status,
+  message,
+});
+
+const validateAndNormalize = (content, date) => {
+  if (!content || typeof content !== 'string' || content.trim() === '') {
+    return buildValidationError(
+      'Note content is required and must be a non-empty string'
+    );
+  }
+
+  const trimmedContent = content.trim();
+  if (trimmedContent.length > MAX_NOTE_LENGTH) {
+    return buildValidationError(
+      'Note content exceeds maximum length of 10,000 characters'
+    );
+  }
+
+  if (!date || typeof date !== 'string' || date.trim() === '') {
+    return buildValidationError(
+      'Date is required and must be a valid ISO string'
+    );
+  }
+
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) {
+    return buildValidationError(
+      'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)'
+    );
+  }
+
+  if (parsedDate > ONE_YEAR_IN_FUTURE()) {
+    return buildValidationError(
+      'Date cannot be more than one year in the future'
+    );
+  }
+
+  return { ok: true, content: trimmedContent, dateAt: parsedDate };
+};
+
 class NoteController {
-  async createNote(req, res) {
+  async createNote(c) {
     try {
-      const { content, date } = req.body;
+      const { content, date } = await c.req.json();
       // Extract userId from authenticated user (set by authenticateToken middleware)
-      const userId = req.user?.id;
+      const userId = c.get('user')?.id;
 
       // Enhanced validation
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'User authentication required',
-        });
+        return c.json(
+          {
+            success: false,
+            message: 'User authentication required',
+          },
+          401
+        );
       }
 
-      if (!content || typeof content !== 'string' || content.trim() === '') {
-        return res.status(400).json({
-          success: false,
-          message: 'Note content is required and must be a non-empty string',
-        });
-      }
-
-      // Enhanced content validation
-      const trimmedContent = content.trim();
-      if (trimmedContent.length > 10000) {
-        return res.status(400).json({
-          success: false,
-          message: 'Note content exceeds maximum length of 10,000 characters',
-        });
-      }
-
-      // Enhanced date validation
-      let dateAt = null;
-      if (date) {
-        if (typeof date !== 'string') {
-          return res.status(400).json({
+      const validation = validateAndNormalize(content, date);
+      if (!validation.ok) {
+        return c.json(
+          {
             success: false,
-            message: 'Date must be a valid ISO string',
-          });
-        }
-
-        const parsedDate = new Date(date);
-        if (isNaN(parsedDate.getTime())) {
-          return res.status(400).json({
-            success: false,
-            message:
-              'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
-          });
-        }
-
-        // Prevent future dates beyond reasonable limit (1 year)
-        const oneYearFromNow = new Date();
-        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-        if (parsedDate > oneYearFromNow) {
-          return res.status(400).json({
-            success: false,
-            message: 'Date cannot be more than one year in the future',
-          });
-        }
-
-        dateAt = parsedDate;
+            message: validation.message,
+          },
+          validation.status
+        );
       }
 
       const result = await noteService.createNote(
         userId,
-        trimmedContent,
-        dateAt
+        validation.content,
+        validation.dateAt
       );
 
       if (!result.success) {
-        return res.status(400).json({
-          success: false,
-          message: result.error || 'Failed to create note',
-        });
+        return c.json(
+          {
+            success: false,
+            message: result.error || 'Failed to create note',
+          },
+          400
+        );
       }
 
-      res.status(201).json({
-        success: true,
-        message: 'Note created successfully',
-        note: result.note,
-      });
+      return c.json(
+        {
+          success: true,
+          message: 'Note created successfully',
+          note: result.note,
+        },
+        201
+      );
     } catch (error) {
       console.error('Error creating note:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error while creating note',
-      });
+      return c.json(
+        {
+          success: false,
+          message: 'Internal server error while creating note',
+        },
+        500
+      );
     }
   }
 
-  async getNotes(req, res) {
+  async getNotes(c) {
     try {
       // Extract userId from authenticated user (set by authenticateToken middleware)
-      const userId = req.user?.id;
+      const userId = c.get('user')?.id;
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'User authentication required',
-        });
+        return c.json(
+          {
+            success: false,
+            message: 'User authentication required',
+          },
+          401
+        );
       }
 
       // Enhanced pagination validation
-      const limit = Math.min(Math.max(parseInt(req.query.limit) || 50, 1), 100);
-      const offset = Math.max(parseInt(req.query.offset) || 0, 0);
+      const limit = Math.min(
+        Math.max(parseInt(c.req.query('limit')) || 50, 1),
+        100
+      );
+      const offset = Math.max(parseInt(c.req.query('offset')) || 0, 0);
 
       // Optional search and filter parameters
-      const { search, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+      const search = c.req.query('search');
+      const sortBy = c.req.query('sortBy') || 'createdAt';
+      const sortOrder = c.req.query('sortOrder') || 'desc';
 
       const result = await noteService.getNotesByUserId(userId, limit, offset, {
         search: search?.trim(),
@@ -116,13 +148,16 @@ class NoteController {
       });
 
       if (!result.success) {
-        return res.status(400).json({
-          success: false,
-          message: result.error || 'Failed to retrieve notes',
-        });
+        return c.json(
+          {
+            success: false,
+            message: result.error || 'Failed to retrieve notes',
+          },
+          400
+        );
       }
 
-      res.json({
+      return c.json({
         success: true,
         notes: result.notes,
         pagination: {
@@ -134,196 +169,198 @@ class NoteController {
       });
     } catch (error) {
       console.error('Error retrieving notes:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error while retrieving notes',
-      });
+      return c.json(
+        {
+          success: false,
+          message: 'Internal server error while retrieving notes',
+        },
+        500
+      );
     }
   }
 
-  async getNoteById(req, res) {
+  async getNoteById(c) {
     try {
-      const { id } = req.params;
+      const id = c.req.param('id');
       // Extract userId from authenticated user (set by authenticateToken middleware)
-      const userId = req.user?.id;
+      const userId = c.get('user')?.id;
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'User authentication required',
-        });
+        return c.json(
+          {
+            success: false,
+            message: 'User authentication required',
+          },
+          401
+        );
       }
 
       // Validate note ID
       if (!id || typeof id !== 'string' || id.trim() === '') {
-        return res.status(400).json({
-          success: false,
-          message: 'Valid note ID is required',
-        });
+        return c.json(
+          {
+            success: false,
+            message: 'Valid note ID is required',
+          },
+          400
+        );
       }
 
       const result = await noteService.getNoteById(id.trim(), userId);
 
       if (!result.success) {
-        return res.status(404).json({
-          success: false,
-          message: result.error || 'Note not found or access denied',
-        });
+        return c.json(
+          {
+            success: false,
+            message: result.error || 'Note not found or access denied',
+          },
+          404
+        );
       }
 
-      res.json({
+      return c.json({
         success: true,
         note: result.note,
       });
     } catch (error) {
       console.error('Error retrieving note by ID:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error while retrieving note',
-      });
+      return c.json(
+        {
+          success: false,
+          message: 'Internal server error while retrieving note',
+        },
+        500
+      );
     }
   }
 
-  async updateNote(req, res) {
+  async updateNote(c) {
     try {
-      const { id } = req.params;
-      const { content, date } = req.body;
+      const id = c.req.param('id');
+      const { content, date } = await c.req.json();
       // Extract userId from authenticated user (set by authenticateToken middleware)
-      const userId = req.user?.id;
+      const userId = c.get('user')?.id;
 
       // Enhanced validation
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'User authentication required',
-        });
+        return c.json(
+          {
+            success: false,
+            message: 'User authentication required',
+          },
+          401
+        );
       }
 
       // Validate note ID
       if (!id || typeof id !== 'string' || id.trim() === '') {
-        return res.status(400).json({
-          success: false,
-          message: 'Valid note ID is required',
-        });
+        return c.json(
+          {
+            success: false,
+            message: 'Valid note ID is required',
+          },
+          400
+        );
       }
 
-      if (!content || typeof content !== 'string' || content.trim() === '') {
-        return res.status(400).json({
-          success: false,
-          message: 'Note content is required and must be a non-empty string',
-        });
-      }
-
-      // Enhanced content validation
-      const trimmedContent = content.trim();
-      if (trimmedContent.length > 10000) {
-        return res.status(400).json({
-          success: false,
-          message: 'Note content exceeds maximum length of 10,000 characters',
-        });
-      }
-
-      // Enhanced date validation
-      let dateAt = null;
-      if (date) {
-        if (typeof date !== 'string') {
-          return res.status(400).json({
+      const validation = validateAndNormalize(content, date);
+      if (!validation.ok) {
+        return c.json(
+          {
             success: false,
-            message: 'Date must be a valid ISO string',
-          });
-        }
-
-        const parsedDate = new Date(date);
-        if (isNaN(parsedDate.getTime())) {
-          return res.status(400).json({
-            success: false,
-            message:
-              'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
-          });
-        }
-
-        // Prevent future dates beyond reasonable limit (1 year)
-        const oneYearFromNow = new Date();
-        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-        if (parsedDate > oneYearFromNow) {
-          return res.status(400).json({
-            success: false,
-            message: 'Date cannot be more than one year in the future',
-          });
-        }
-
-        dateAt = parsedDate;
+            message: validation.message,
+          },
+          validation.status
+        );
       }
 
       const result = await noteService.updateNote(
         id.trim(),
         userId,
-        trimmedContent,
-        dateAt
+        validation.content,
+        validation.dateAt
       );
 
       if (!result.success) {
-        return res.status(404).json({
-          success: false,
-          message: result.error || 'Note not found or update failed',
-        });
+        return c.json(
+          {
+            success: false,
+            message: result.error || 'Note not found or update failed',
+          },
+          404
+        );
       }
 
-      res.json({
+      return c.json({
         success: true,
         message: 'Note updated successfully',
         note: result.note,
       });
     } catch (error) {
       console.error('Error updating note:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error while updating note',
-      });
+      return c.json(
+        {
+          success: false,
+          message: 'Internal server error while updating note',
+        },
+        500
+      );
     }
   }
 
-  async deleteNote(req, res) {
+  async deleteNote(c) {
     try {
-      const { id } = req.params;
+      const id = c.req.param('id');
       // Extract userId from authenticated user (set by authenticateToken middleware)
-      const userId = req.user?.id;
+      const userId = c.get('user')?.id;
 
       // Enhanced validation
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'User authentication required',
-        });
+        return c.json(
+          {
+            success: false,
+            message: 'User authentication required',
+          },
+          401
+        );
       }
 
       // Validate note ID
       if (!id || typeof id !== 'string' || id.trim() === '') {
-        return res.status(400).json({
-          success: false,
-          message: 'Valid note ID is required',
-        });
+        return c.json(
+          {
+            success: false,
+            message: 'Valid note ID is required',
+          },
+          400
+        );
       }
 
       const result = await noteService.deleteNote(id.trim(), userId);
 
       if (!result.success) {
-        return res.status(404).json({
-          success: false,
-          message: result.error || 'Note not found or delete failed',
-        });
+        return c.json(
+          {
+            success: false,
+            message: result.error || 'Note not found or delete failed',
+          },
+          404
+        );
       }
 
-      res.json({
+      return c.json({
         success: true,
         message: 'Note deleted successfully',
       });
     } catch (error) {
       console.error('Error deleting note:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error while deleting note',
-      });
+      return c.json(
+        {
+          success: false,
+          message: 'Internal server error while deleting note',
+        },
+        500
+      );
     }
   }
 }

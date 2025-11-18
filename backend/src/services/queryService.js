@@ -9,7 +9,6 @@ class QueryService {
       // Get intent from AI service
       const intentResponse = await aiService.classifyQuery(query);
       const intent = intentResponse.intent || IntentEnum.UNKNOWN;
-
       // Route based on intent
       switch (intent) {
         case IntentEnum.TASK_LIST:
@@ -28,20 +27,9 @@ class QueryService {
 
   async queryDateLookup(userId, query) {
     try {
-      // Get date from AI service
-      const dateInfo = await aiService.queryDateLookup(userId, query);
-      return AIResponseFactory.create(IntentEnum.DATE_LOOKUP, dateInfo);
-    } catch (error) {
-      console.error('Error in date lookup:', error);
-      return AIResponseFactory.createError(IntentEnum.DATE_LOOKUP, error.message);
-    }
-  }
-
-  async queryTaskList(userId, query) {
-    try {
       // Get note IDs from AI service
-      console.log('QueryService.query: ' + userId + '/' + query);
-      const noteIds = await aiService.queryTaskList(userId, query);
+      console.log('QueryService.queryDateLookup: ' + userId + '/' + query);
+      const noteIds = await aiService.queryDateLookup(userId, query);
 
       // Get notes by their IDs
       const { success, notes, error } = await noteService.getNotesByIds(
@@ -50,7 +38,37 @@ class QueryService {
       );
 
       if (!success) {
-        return AIResponseFactory.createError(IntentEnum.TASK_LIST, error || 'Failed to fetch notes');
+        return AIResponseFactory.createError(
+          IntentEnum.DATE_LOOKUP,
+          error || 'Failed to fetch notes'
+        );
+      }
+
+      return AIResponseFactory.create(IntentEnum.DATE_LOOKUP, notes || []);
+    } catch (error) {
+      console.error('Error in date lookup query:', error);
+      return AIResponseFactory.createError(
+        IntentEnum.DATE_LOOKUP,
+        error.message
+      );
+    }
+  }
+
+  async queryTaskList(userId, query) {
+    try {
+      // Get note IDs from AI service
+      const noteIds = await aiService.queryTaskList(userId, query);
+      // Get notes by their IDs
+      const { success, notes, error } = await noteService.getNotesByIds(
+        noteIds,
+        userId
+      );
+
+      if (!success) {
+        return AIResponseFactory.createError(
+          IntentEnum.TASK_LIST,
+          error || 'Failed to fetch notes'
+        );
       }
 
       return AIResponseFactory.create(IntentEnum.TASK_LIST, notes || []);

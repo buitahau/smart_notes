@@ -4,6 +4,7 @@ import aiService from './aiService.js';
 
 class NoteService {
   async createNote(userId, content, dateAt) {
+    dateAt = new Date(new Date(dateAt).setUTCHours(0, 0, 0, 0)).toISOString();
     try {
       const noteData = {
         id: crypto.randomUUID(),
@@ -14,7 +15,10 @@ class NoteService {
 
       const note = await noteRepository.create(noteData);
 
-      await aiService.insertNote(note.id, content, userId, dateAt);
+      // Fire and forget AI vector insert so note creation isn't blocked
+      aiService
+        .insertNote(note.id, content, userId, dateAt)
+        .catch(err => console.error('insertNote async error', err));
 
       return {
         success: true,
@@ -34,7 +38,9 @@ class NoteService {
       const notes = await noteRepository.getByUserId(userId);
 
       // Apply pagination and sorting
-      const sortedNotes = notes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const sortedNotes = notes.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
       const paginatedNotes = sortedNotes.slice(offset, offset + limit);
 
       return {
@@ -84,12 +90,52 @@ class NoteService {
         };
       }
 
-      const updateData = { content: content };
+      const updateData = {};
+      // Only send fields that truly changed to the repository update
+      if (typeof content === 'string' && content !== existingNote.content) {
+        updateData.content = content;
+      }
+
       if (dateAt !== null) {
-        updateData.dateAt = dateAt;
+        const incomingDate = dateAt instanceof Date ? dateAt : new Date(dateAt);
+        const existingDate = existingNote.dateAt;
+        const existingTime =
+          existingDate instanceof Date && !isNaN(existingDate.getTime())
+            ? existingDate.getTime()
+            : null;
+        const incomingTime =
+          incomingDate instanceof Date && !isNaN(incomingDate.getTime())
+            ? incomingDate.getTime()
+            : null;
+
+        if (incomingTime !== null && incomingTime !== existingTime) {
+          updateData.dateAt = new Date(
+            new Date(incomingTime).setUTCHours(0, 0, 0, 0)
+          ).toISOString();
+        }
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return {
+          success: true,
+          note: existingNote,
+        };
       }
 
       const updatedNote = await noteRepository.update(noteId, updateData);
+      if (!updatedNote) {
+        return {
+          success: false,
+          error: 'Failed to update note',
+        };
+      }
+      aiService
+        .updateNote(updatedNote.id, {
+          userId: updatedNote.userId,
+          content: updatedNote.content,
+          dateAt: updatedNote.dateAt,
+        })
+        .catch(err => console.error('updateNote async error', err));
 
       return {
         success: true,
@@ -115,6 +161,9 @@ class NoteService {
       }
 
       await noteRepository.delete(noteId);
+      aiService
+        .deleteNote(noteId)
+        .catch(err => console.error('deleteNote async error', err));
 
       return {
         success: true,

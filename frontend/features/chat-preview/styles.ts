@@ -3,7 +3,7 @@ export const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: '#ffffff',
     border: '1px solid #e5e7eb',
     borderRadius: '12px',
-    padding: '16px',
+    padding: '16px 0',
     marginBottom: '16px',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
   },
@@ -11,6 +11,8 @@ export const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '12px',
     paddingBottom: '8px',
     borderBottom: '1px solid #e5e7eb',
+    paddingLeft: '16px',
+    paddingRight: '16px',
   },
   title: {
     margin: 0,
@@ -27,6 +29,7 @@ export const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'flex-end',
     gap: '8px',
     maxWidth: '100%',
+    width: '100%',
   },
   avatar: {
     width: '32px',
@@ -51,6 +54,8 @@ export const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: '#f8fafc',
     color: '#374151',
     border: '1px solid #e5e7eb',
+    width: '100%',
+    maxWidth: '100%',
   },
   messageContent: {
     wordBreak: 'break-word' as React.CSSProperties['wordBreak'],

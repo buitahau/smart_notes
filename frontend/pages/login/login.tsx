@@ -1,89 +1,52 @@
 import { useEffect, useState } from 'react';
-import { Lock, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { useLoginForm } from '@features/login';
-import {
-  LoginHeader,
-  LoginFooter,
-  InputField,
-  ErrorMessage,
-  NotificationMessage,
-} from '@features/login';
-import { SocialButton } from '@features/signup';
+import { LoginHeader, InputField, ErrorMessage, NotificationMessage, OtpInput } from '@features/login';
 import './login.css';
-import { LoginFormData } from '@types/login';
 import { useMiniRouter } from '@context/router-context';
-import { signIn, validateToken } from '@services/auth-service';
-import { storage } from '@utils/storage';
-import { STORAGE_KEYS } from '@utils/constants';
+import { signInWithOtp, verifyOtp as verifyOtpRequest } from '@services/auth-service';
 import { NotificationMessageProps } from '@types/login';
 
 export function Login() {
-  const { params, navigate } = useMiniRouter();
-  const { formData, errors, isLoading, updateField, handleSubmit } = useLoginForm();
+  const { params } = useMiniRouter();
+  const { formData, errors, isLoading, isOtpSent, updateField, requestOtp, verifyOtp, resetOtp } =
+    useLoginForm();
   const [notification, setNotification] = useState<NotificationMessageProps | null>(null);
+  const [otpValues, setOtpValues] = useState<string[]>(Array(6).fill(''));
 
-  // Check if user is already authenticated
+  // Handle notification params
   useEffect(() => {
-    const checkAuthToken = async () => {
-      const token = await storage.get(STORAGE_KEYS.TOKEN);
-      if (!token) return;
-
-      const response = await validateToken();
-
-      if (response.error) {
-        await storage.clear();
-      } else {
-        navigate('home');
-      }
-    };
     if (params?.notification) {
       showNotification(params.notification);
     }
-    checkAuthToken();
-  }, [navigate, params]);
+  }, [params]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleSubmit(onSubmit);
-  };
+    if (!isOtpSent) {
+      const sent = await requestOtp(signInWithOtp);
+      if (sent) {
+        setOtpValues(Array(6).fill(''));
+        resetOtp();
+      }
+      return;
+    }
 
-  const onFacebookLogin = () => {
-    // Handle Facebook OAuth login
-    console.log('Facebook login initiated');
-    // In a real app, you would integrate with Facebook OAuth
-    navigate('home');
-  };
-
-  const onGoogleLogin = () => {
-    // Handle Google OAuth login
-    console.log('Google login initiated');
-    // In a real app, you would integrate with Google OAuth
-    navigate('home');
-  };
-
-  const onSubmit = async (data: LoginFormData) => {
-    const response = await signIn(data);
-    return Promise.resolve(response);
-  };
-
-  const onSignUp = () => {
-    navigate('signup');
+    await verifyOtp(verifyOtpRequest);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    updateField(name as keyof typeof formData, type === 'checkbox' ? checked : value);
+    const { name, value } = e.target;
+    updateField(name as keyof typeof formData, value);
   };
 
-  const handleForgotPasswordClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onForgotPassword) {
-      onForgotPassword();
-    }
-  };
-
-  const onForgotPassword = () => {
-    console.log('Forgot password clicked');
+  const handleOtpChange = (index: number, value: string) => {
+    setOtpValues((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      updateField('otp', next.join(''));
+      return next;
+    });
   };
 
   // Function to show notification (can be called from signup or other components)
@@ -98,18 +61,6 @@ export function Login() {
   return (
     <div className="login-container">
       <LoginHeader />
-
-      {/* Social Login Buttons */}
-      <div className="login-social-section">
-        <SocialButton provider="google" onClick={onGoogleLogin} disabled={isLoading} />
-        <SocialButton provider="facebook" onClick={onFacebookLogin} disabled={isLoading} />
-      </div>
-
-      <div className="login-divider">
-        <div className="login-divider-line"></div>
-        <span className="login-divider-text">Or sign in with email</span>
-        <div className="login-divider-line"></div>
-      </div>
 
       {notification && (
         <NotificationMessage type={notification.type} message={notification.message} />
@@ -131,47 +82,18 @@ export function Login() {
           onChange={handleInputChange}
         />
 
-        <InputField
-          id="password"
-          name="password"
-          type="password"
-          label="Password"
-          value={formData.password}
-          placeholder="••••••••"
-          autoComplete="current-password"
-          icon={<Lock className="login-input-icon-svg" />}
-          error={errors.password}
-          onChange={handleInputChange}
-        />
-
-        <div className="login-remember-me">
-          <div className="login-remember-me-container">
-            <input
-              id="rememberMe"
-              name="rememberMe"
-              type="checkbox"
-              className="login-checkbox"
-              checked={formData.rememberMe}
-              onChange={handleInputChange}
-            />
-            <label htmlFor="rememberMe" className="login-remember-me-label">
-              Remember me
-            </label>
-          </div>
-
-          <div className="login-forgot-password-container">
-            <a href="#" className="login-forgot-password" onClick={handleForgotPasswordClick}>
-              Forgot your password?
-            </a>
-          </div>
-        </div>
+        {isOtpSent && (
+          <>
+            <p className="login-otp-helper">Enter the 6-digit code sent to your email.</p>
+            <OtpInput values={otpValues} onChange={handleOtpChange} disabled={isLoading} error={errors.otp} />
+          </>
+        )}
 
         <button type="submit" disabled={isLoading} className="login-button">
-          {isLoading ? 'Signing in...' : 'Sign in'}
+          {isLoading ? 'Please wait...' : isOtpSent ? 'Verify code' : 'Send code'}
         </button>
       </form>
 
-      <LoginFooter onSignUp={onSignUp} />
     </div>
   );
 }

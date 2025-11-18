@@ -1,30 +1,37 @@
 import queryService from '../services/queryService.js';
 
 class QueryController {
-  async query(req, res) {
+  async query(c) {
     try {
-      const { query } = req.body;
+      const { query } = await c.req.json();
       // Extract userId from authenticated user (set by authenticateToken middleware)
-      const userId = req.user?.id;
+      console.log(query);
+      const userId = c.get('user')?.id;
 
       // Enhanced validation
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'User authentication required',
-        });
+        return c.json(
+          {
+            success: false,
+            message: 'User authentication required',
+          },
+          401
+        );
       }
-      const respose = await queryService.query(userId, query);
-      res.status(200).json({
+      const response = await queryService.query(userId, query);
+      return c.json({
         success: true,
-        notes: respose,
+        notes: response,
       });
     } catch (error) {
       console.error('Error querying note:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error while querying note',
-      });
+      return c.json(
+        {
+          success: false,
+          message: 'Internal server error while querying note',
+        },
+        500
+      );
     }
   }
 }

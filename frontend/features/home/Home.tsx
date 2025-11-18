@@ -21,19 +21,34 @@ export const Home: React.FC = () => {
   const { navigate } = useMiniRouter();
   const { messages, setMessages } = useChat();
 
-  // Initialize welcome message if no messages exist
+  // Load messages from storage on initial render
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        {
-          id: '1',
-          type: 'ai',
-          content: "Hello! 👋 I'm your AI assistant. I can help you with:\n\n• Finding your notes for today\n• Creating new notes\n• Organizing your thoughts\n\nWhat would you like to do?",
-          timestamp: new Date(),
-        },
-      ]);
+    const loadMessages = async () => {
+      const savedMessages = await storage.get<Message[]>(STORAGE_KEYS.CHAT_MESSAGES);
+      if (savedMessages && savedMessages.length > 0) {
+        setMessages(savedMessages);
+      } else {
+        // Initialize welcome message if no messages exist
+        setMessages([
+          {
+            id: '1',
+            type: 'ai',
+            content: "Hello! 👋 I'm your AI assistant. I can help you with:\n\n• Finding your notes for today\n• Creating new notes\n• Organizing your thoughts\n\nWhat would you like to do?",
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+      }
+    };
+    loadMessages();
+  }, [setMessages]);
+
+  // Save messages to storage when they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastFiveMessages = messages.slice(-5);
+      storage.set(STORAGE_KEYS.CHAT_MESSAGES, lastFiveMessages);
     }
-  }, [messages.length, setMessages]);
+  }, [messages]);
 
   const handleCreateNote = () => {
     navigate('create-note');
@@ -49,7 +64,7 @@ export const Home: React.FC = () => {
       id: `user-${Date.now()}`,
       type: 'user',
       content: userInput,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
 
     // Show loading indicator
@@ -58,7 +73,7 @@ export const Home: React.FC = () => {
       id: loadingMessageId,
       type: 'ai',
       content: 'Thinking',
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
     const updatedMessages = [...messages, userMessage, loadingMessage];
     setMessages(updatedMessages);
@@ -77,12 +92,12 @@ export const Home: React.FC = () => {
       // Ensure notesData.data is always an array
       const notesArray = Array.isArray(notesData.data) ? notesData.data : [];
 
-      if (notesData.intent === 'task_list' && notesArray.length > 0) {
+      if ((notesData.intent === 'task_list' || notesData.intent === 'date_lookup') && notesArray.length > 0) {
         aiResponse = {
           id: `ai-${Date.now()}`,
           type: 'ai',
           content: "Here are your tasks:",
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           notes: notesArray,
           intent: notesData.intent,
         };
@@ -91,7 +106,7 @@ export const Home: React.FC = () => {
           id: `ai-${Date.now()}`,
           type: 'ai',
           content: notesArray.length > 0 ? "Here are your notes:" : "No notes found.",
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           notes: notesArray,
           intent: notesData.intent,
         };
@@ -104,7 +119,7 @@ export const Home: React.FC = () => {
         id: `error-${Date.now()}`,
         type: 'ai',
         content: "Sorry, I encountered an error while processing your request. Please try again.",
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
       setMessages([...filteredMessages, errorResponse]);
     }
@@ -122,7 +137,12 @@ export const Home: React.FC = () => {
   };
 
   const handleProfile = () => {
-    console.log('Open profile');
+    navigate('profile');
+    setShowUserMenu(false);
+  };
+
+  const handleSettings = () => {
+    navigate('settings');
     setShowUserMenu(false);
   };
 
@@ -135,8 +155,16 @@ export const Home: React.FC = () => {
   // Close menu when clicking outside
   useEffect(() => {
     const loadProfile = async () => {
-      const userDetail = (await storage.get(STORAGE_KEYS.USER)) as UserDetails;
-      setUserName(userDetail.username ?? '');
+      const userDetail = (await storage.get(STORAGE_KEYS.USER)) as UserDetails | null;
+      if (userDetail) {
+        const composedName = [userDetail.firstName, userDetail.lastName]
+          .filter((value) => Boolean(value && value.trim()))
+          .join(' ')
+          .trim();
+        setUserName(composedName || userDetail.username || userDetail.email || '');
+      } else {
+        setUserName('');
+      }
     };
     loadProfile();
 
@@ -296,6 +324,7 @@ export const Home: React.FC = () => {
         showUserMenu={showUserMenu}
         onToggleUserMenu={toggleUserMenu}
         onProfile={handleProfile}
+        onSettings={handleSettings}
         onLogout={handleLogout}
         onCreateNote={handleCreateNote}
         userMenuRef={userMenuRef}

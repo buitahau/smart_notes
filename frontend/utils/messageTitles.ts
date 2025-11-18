@@ -21,7 +21,7 @@ export const getHeaderTitle = (config: MessageTitleConfig): string => {
   if (!messageContent) {
     switch (intent) {
       case 'task_list':
-        return 'Your Tasks';
+        return '';
       case 'date_lookup':
         return 'Related Notes';
       default:
@@ -41,7 +41,7 @@ export const getHeaderTitle = (config: MessageTitleConfig): string => {
     if (content.includes('upcoming') || content.includes('future')) return "Upcoming Tasks";
     if (content.includes('overdue') || content.includes('pending')) return "Pending Tasks";
     if (content.includes('complete') || content.includes('done')) return "Completed Tasks";
-    return 'Your Tasks';
+    return '';
   }
 
   switch (intent) {
